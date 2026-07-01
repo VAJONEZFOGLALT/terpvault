@@ -1,0 +1,2 @@
+[console_scripts]
+terpvault = terpvault.cli:app

@@ -1,0 +1,13 @@
+slug: terpenes-uk
+name: Terpenes UK
+importer_module: terpvault.sync.importer.terpenes_uk.TerpenesUKImporter
+client_type: shopify
+base_url: https://terpenesuk.com
+rate_limit_per_second: 5
+retry_max: 3
+
+branding:
+  primary_color: "#2C5F2D"
+  secondary_color: "#97BC62"
+  font_heading: "Lora"
+  font_body: "Inter"

@@ -1,13 +1,20 @@
 import asyncio
 import json
+from pathlib import Path
 import typer
 
+from terpvault.config.settings import settings
 from terpvault.sync.engine import SyncEngine
 from terpvault.storage.database import get_session
-from terpvault.storage.repository import ChangeRepo, SnapshotRepo
+from terpvault.storage.repository import ChangeRepo, SnapshotRepo, SupplierRepo
+from terpvault.storage.tables import SupplierRow
 from terpvault.domain.changes import ChangeSet
+from terpvault.domain.models import ProductData
 from terpvault.sync.differ import diff_snapshot_products
 from terpvault.sync.report import ChangeReport
+from terpvault.generate.builder import CatalogBuilder
+from terpvault.generate.integrity import check_catalog
+from terpvault.generate.export import export_json
 
 app = typer.Typer(
     name="terpvault",
@@ -103,6 +110,72 @@ def changes(
         for s in all_snaps:
             typer.echo(f"  {s.id}  {s.created_at}  ({s.product_count} products)")
         typer.echo("Use --latest or --snapshot-a / --snapshot-b to view changes.")
+
+    except typer.Exit:
+        raise
+    except Exception as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
+    finally:
+        session.close()
+
+
+@app.command()
+def export(
+    supplier: str,
+    snapshot_id: str = typer.Option("", "--snapshot", help="Snapshot ID (defaults to latest)"),
+    output: str = typer.Option("", "--output", help="Output file path (defaults to data/catalogs/)"),
+):
+    """Export a catalog document from a snapshot."""
+    session = get_session()
+    try:
+        snap_repo = SnapshotRepo(session)
+        supplier_repo = SupplierRepo(session)
+
+        supplier_row = supplier_repo.get_by_slug(supplier)
+        if not supplier_row:
+            typer.echo(f"Supplier not found: {supplier}", err=True)
+            raise typer.Exit(code=1)
+
+        snap = None
+        if snapshot_id:
+            snap = snap_repo.get_by_id(snapshot_id)
+            if not snap:
+                typer.echo(f"Snapshot not found: {snapshot_id}", err=True)
+                raise typer.Exit(code=1)
+        else:
+            from terpvault.storage.tables import SnapshotRow
+            snap = session.query(SnapshotRow).filter_by(
+                supplier_slug=supplier
+            ).order_by(SnapshotRow.created_at.desc()).first()
+            if not snap:
+                typer.echo(f"No snapshots found for supplier: {supplier}", err=True)
+                raise typer.Exit(code=1)
+
+        import json as _json
+        products_data = _json.loads(snap.products)
+        products = [ProductData(**p) for p in products_data]
+
+        builder = CatalogBuilder(supplier, supplier_row.name)
+        doc = builder.build(products)
+
+        integrity = check_catalog(doc)
+        if not integrity.can_publish:
+            typer.echo("Catalog integrity check failed:", err=True)
+            for issue in integrity.errors:
+                typer.echo(f"  ERROR: {issue.message}", err=True)
+            raise typer.Exit(code=1)
+
+        if integrity.warnings:
+            for issue in integrity.warnings:
+                typer.echo(f"  WARNING: {issue.message}")
+
+        output_path = Path(output) if output else settings.catalogs_dir / supplier / f"catalog-{snap.id[:8]}.json"
+        export_json(doc, output_path)
+        typer.echo(f"Exported: {output_path}")
+        typer.echo(f"  Products: {doc.stats.product_count}")
+        typer.echo(f"  Sections: {doc.stats.section_count}")
+        typer.echo(f"  Brands:   {doc.stats.brand_count}")
 
     except typer.Exit:
         raise

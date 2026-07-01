@@ -25,6 +25,8 @@ class ProductData(BaseModel):
     unit: Optional[str] = None
     size: Optional[str] = None
     options: list[dict] = Field(default_factory=list)
+    variants: list[dict] = Field(default_factory=list)
+    images: list["ImageData"] = Field(default_factory=list)
     metadata: dict = Field(default_factory=dict)
     raw: dict = Field(default_factory=dict)
 

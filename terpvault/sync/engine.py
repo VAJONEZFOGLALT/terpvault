@@ -7,11 +7,14 @@ from sqlalchemy.orm import Session
 
 from terpvault.config.supplier_config import SupplierConfig
 from terpvault.domain.models import SupplierData, ProductData, VariantData, ImageData, SnapshotData
+from terpvault.domain.changes import ChangeSet
 from terpvault.domain.raw_product import RawProduct
 from terpvault.storage.database import get_session
 from terpvault.storage.repository import (
-    SupplierRepo, ProductRepo, VariantRepo, ImageRepo, SnapshotRepo,
+    SupplierRepo, ProductRepo, VariantRepo, ImageRepo, SnapshotRepo, ChangeRepo,
 )
+from terpvault.sync.differ import diff_snapshot_products
+from terpvault.sync.report import ChangeReport
 from terpvault.sync.importer.client import SupplierClient
 
 
@@ -40,6 +43,7 @@ class SyncEngine:
             variant_repo = VariantRepo(session)
             image_repo = ImageRepo(session)
             snapshot_repo = SnapshotRepo(session)
+            change_repo = ChangeRepo(session)
 
             supplier_row = supplier_repo.get_or_create(
                 SupplierData(slug=self.config.slug, name=self.config.name, config=self.config.model_dump(mode="json"))
@@ -65,6 +69,7 @@ class SyncEngine:
                     unit=rp.unit,
                     size=rp.size,
                     options=rp.options,
+                    variants=rp.variants,
                     metadata=rp.metadata,
                     raw=rp.raw,
                 )
@@ -84,7 +89,7 @@ class SyncEngine:
                     variant_repo.upsert_batch(product_row.id, variant_data_list)
                 variant_count += len(variant_data_list)
 
-                image_data_list = [
+                image_models = [
                     ImageData(
                         url=img["url"],
                         position=img.get("position", idx),
@@ -92,9 +97,10 @@ class SyncEngine:
                     )
                     for idx, img in enumerate(rp.images)
                 ]
-                if image_data_list:
-                    image_repo.upsert_batch(product_row.id, image_data_list)
-                image_count += len(image_data_list)
+                product_data.images = image_models
+                if image_models:
+                    image_repo.upsert_batch(product_row.id, image_models)
+                image_count += len(image_models)
 
                 product_count += 1
                 products_for_snapshot.append(product_data)
@@ -109,6 +115,29 @@ class SyncEngine:
 
             checksum_input = f"{self.config.slug}:{product_count}:{snapshot_row.created_at.isoformat()}"
             snapshot_row.checksum = hashlib.sha256(checksum_input.encode()).hexdigest()
+
+            previous_snapshot = snapshot_repo.get_previous(self.config.slug, snapshot_row.id)
+            source_id: str | None = None
+            change_set = ChangeSet(target_snapshot_id=snapshot_row.id)
+            if previous_snapshot:
+                change_set = diff_snapshot_products(previous_snapshot.products, snapshot_row.products)
+                change_set.source_snapshot_id = previous_snapshot.id
+                change_set.target_snapshot_id = snapshot_row.id
+                source_id = previous_snapshot.id
+
+            report = ChangeReport(change_set)
+            change_repo.create(
+                supplier_slug=self.config.slug,
+                source_snapshot_id=source_id,
+                target_snapshot_id=change_set.target_snapshot_id,
+                changes_json=change_set.model_dump_json(),
+                report_json=report.to_json(),
+                report_text=report.to_text(),
+                total_changes=report.total,
+                major_count=report.major,
+                normal_count=report.normal,
+                minor_count=report.minor,
+            )
 
             session.commit()
 

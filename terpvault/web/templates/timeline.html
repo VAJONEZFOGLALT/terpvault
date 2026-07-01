@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changes — {{ slug }} — TerpVault</title>
+<style>
+  :root { --primary: #2C5F2D; --bg: #f4f5f3; --card: #fff; --border: #e0e0e0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: #333; font-size: 14px; }
+  .container { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
+
+  nav { margin-bottom: 20px; }
+  nav a { color: var(--primary); text-decoration: none; font-size: 0.9em; }
+  nav a:hover { text-decoration: underline; }
+
+  header { padding: 10px 0 20px; border-bottom: 2px solid var(--primary); margin-bottom: 24px; }
+  header h1 { font-size: 1.4em; color: #222; }
+
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+  .summary-stat { min-width: 80px; }
+  .summary-value { font-size: 1.5em; font-weight: 700; }
+  .summary-label { font-size: 0.8em; color: #888; margin-top: 2px; }
+  .major .summary-value { color: #c0392b; }
+  .normal .summary-value { color: #e67e22; }
+  .minor .summary-value { color: #888; }
+  .added .summary-value { color: var(--primary); }
+  .removed .summary-value { color: #c0392b; }
+
+  .entry {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .entry:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    min-width: 70px;
+    text-align: center;
+  }
+  .badge-added { background: #e8f0e8; color: var(--primary); }
+  .badge-removed { background: #fce8e8; color: #c0392b; }
+  .badge-updated { background: #fef5e7; color: #e67e22; }
+  .badge-major { background: #fce8e8; color: #c0392b; }
+  .badge-normal { background: #fef5e7; color: #e67e22; }
+  .badge-minor { background: #f0f0f0; color: #888; }
+
+  .product-name { font-weight: 500; color: #333; flex: 1; }
+  .change-detail { font-size: 0.85em; color: #888; }
+
+  .empty { text-align: center; color: #999; padding: 60px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <nav><a href="/supplier/{{ slug }}">&larr; {{ slug | replace('-', ' ') | title }}</a></nav>
+  <header><h1>Change History</h1></header>
+
+  {% set s = changes.summary %}
+  <div class="summary-card">
+    <div class="summary-stat added"><div class="summary-value">{{ s.added }}</div><div class="summary-label">Added</div></div>
+    <div class="summary-stat removed"><div class="summary-value">{{ s.removed }}</div><div class="summary-label">Removed</div></div>
+    <div class="summary-stat normal"><div class="summary-value">{{ s.updated }}</div><div class="summary-label">Updated</div></div>
+    <div class="summary-stat major"><div class="summary-value">{{ s.major }}</div><div class="summary-label">Major</div></div>
+    <div class="summary-stat normal"><div class="summary-value">{{ s.normal }}</div><div class="summary-label">Normal</div></div>
+    <div class="summary-stat minor"><div class="summary-value">{{ s.minor }}</div><div class="summary-label">Minor</div></div>
+  </div>
+
+  {% if changes.entries %}
+    {% for e in changes.entries %}
+    <div class="entry">
+      {% set t = e.type %}
+      {% if t == 'product_added' %}
+        <span class="badge badge-added">Added</span>
+      {% elif t == 'product_removed' %}
+        <span class="badge badge-removed">Removed</span>
+      {% elif t == 'product_updated' %}
+        <span class="badge badge-updated">Updated</span>
+      {% elif 'variant_added' in t %}
+        <span class="badge badge-added">Variant</span>
+      {% elif 'variant_removed' in t %}
+        <span class="badge badge-removed">Variant</span>
+      {% elif 'image_added' in t %}
+        <span class="badge badge-added">Image</span>
+      {% elif 'image_removed' in t %}
+        <span class="badge badge-removed">Image</span>
+      {% else %}
+        <span class="badge badge-minor">{{ e.severity }}</span>
+      {% endif %}
+      <span class="product-name">{{ e.product_name }}</span>
+      {% if e.fields_changed %}
+        {% for fc in e.fields_changed[:2] %}
+          <span class="change-detail">{{ fc.field }}: {{ fc.old_value }} → {{ fc.new_value }}</span>
+        {% endfor %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty">No changes recorded.</div>
+  {% endif %}
+</div>
+</body>
+</html>

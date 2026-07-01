@@ -2,8 +2,8 @@ slug: terpenes-uk
 name: Terpenes UK
 importer_module: terpvault.sync.importer.terpenes_uk.TerpenesUKImporter
 client_type: shopify
-base_url: https://terpenesuk.com
-rate_limit_per_second: 5
+base_url: https://terpenes-uk.co.uk
+rate_limit_per_second: 2
 retry_max: 3
 
 branding:

@@ -1,5 +1,4 @@
 from pathlib import Path
-from shutil import copy2
 
 from terpvault.domain.catalog_document import CatalogDocument
 from terpvault.generate.artifacts.base import ArtifactGenerator, Artifact, BuildContext

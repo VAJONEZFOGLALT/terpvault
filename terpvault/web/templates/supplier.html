@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ supplier.name }} — TerpVault</title>
+<style>
+  :root { --primary: #2C5F2D; --bg: #f4f5f3; --card: #fff; --border: #e0e0e0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: #333; font-size: 14px; }
+  .container { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
+
+  nav { margin-bottom: 20px; }
+  nav a { color: var(--primary); text-decoration: none; font-size: 0.9em; }
+  nav a:hover { text-decoration: underline; }
+
+  header { padding: 10px 0 20px; border-bottom: 2px solid var(--primary); margin-bottom: 24px; }
+  header h1 { font-size: 1.6em; color: #222; }
+
+  .latest-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .latest-card h2 { font-size: 1em; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+
+  .stat-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat { min-width: 100px; }
+  .stat-value { font-size: 1.6em; font-weight: 700; color: var(--primary); }
+  .stat-label { font-size: 0.8em; color: #888; margin-top: 2px; }
+
+  .meta-line { color: #666; font-size: 0.9em; margin: 4px 0; }
+  .meta-line strong { color: #444; }
+
+  .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+  .version-list { margin-top: 24px; }
+  .version-list h2 { font-size: 1em; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+
+  .version-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 20px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .version-card:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .version-title { font-weight: 600; color: #333; }
+  .version-meta { color: #888; font-size: 0.85em; margin-top: 2px; }
+  .version-meta span { margin-right: 10px; }
+
+  .btn {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.85em;
+    font-weight: 500;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn:hover { background: var(--primary); color: #fff; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: #1e4520; }
+  .btn-sm { padding: 5px 12px; font-size: 0.8em; }
+
+  footer { text-align: center; padding: 40px; color: #aaa; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<div class="container">
+  <nav><a href="/">&larr; Suppliers</a></nav>
+  <header>
+    <h1>{{ supplier.name }}</h1>
+  </header>
+
+  {% set latest = supplier.catalogs[0] if supplier.catalogs else None %}
+
+  {% if latest %}
+  <div class="latest-card">
+    <h2>Latest Catalog</h2>
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-value">{{ latest.product_count }}</div>
+        <div class="stat-label">Products</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ latest.brand_count }}</div>
+        <div class="stat-label">Brands</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ latest.section_count }}</div>
+        <div class="stat-label">Collections</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ latest.variant_count }}</div>
+        <div class="stat-label">Variants</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ latest.image_count }}</div>
+        <div class="stat-label">Images</div>
+      </div>
+    </div>
+
+    <div class="meta-line"><strong>Generated:</strong> {{ latest.timestamp[:19] }}</div>
+    <div class="meta-line"><strong>Snapshot:</strong> {{ latest.snapshot_id[:16] if latest.snapshot_id else "—" }}</div>
+
+    <div class="actions">
+      <a href="/catalogs/{{ supplier.slug }}/index.html" class="btn btn-primary" target="_blank">Browse HTML</a>
+      <a href="/catalogs/{{ supplier.slug }}/{{ latest.filename }}" class="btn" target="_blank">Download JSON</a>
+      <a href="/supplier/{{ supplier.slug }}/timeline" class="btn">View Changes</a>
+      <a href="/supplier/{{ supplier.slug }}/search" class="btn">Search</a>
+    </div>
+  </div>
+  {% else %}
+  <p style="color:#999;">No catalogs found for this supplier.</p>
+  {% endif %}
+
+  {% if supplier.catalogs and supplier.catalogs|length > 1 %}
+  <div class="version-list">
+    <h2>Previous Versions</h2>
+    {% for cat in supplier.catalogs[1:] %}
+    <div class="version-card">
+      <div>
+        <div class="version-title">{{ cat.timestamp[:10] }}</div>
+        <div class="version-meta">
+          <span>{{ cat.product_count }} products</span>
+          <span>{{ cat.brand_count }} brands</span>
+          <span>{{ cat.section_count }} sections</span>
+        </div>
+      </div>
+      <div>
+        <a href="/catalogs/{{ supplier.slug }}/{{ cat.filename }}" class="btn btn-sm">JSON</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not supplier.catalogs %}
+  <p style="text-align:center;color:#999;padding:40px 0;">
+    No catalogs generated yet. Run <code>terpvault sync {{ supplier.slug }}</code> to get started.
+  </p>
+  {% endif %}
+
+  <footer>TerpVault &middot; {{ supplier.name }}</footer>
+</div>
+</body>
+</html>

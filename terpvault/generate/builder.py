@@ -1,4 +1,3 @@
-import json
 from collections import OrderedDict
 from typing import Optional
 
@@ -20,8 +19,6 @@ class CatalogBuilder:
         product_map: dict[str, CatalogProduct] = {}
         section_map: dict[str, SectionInfo] = OrderedDict()
         brands: set[str] = set()
-        variant_count = 0
-        image_count = 0
 
         section_index = 0
         for p in sorted_products:
@@ -30,9 +27,6 @@ class CatalogBuilder:
 
             if p.brand:
                 brands.add(p.brand)
-
-            variant_count += len(p.variants)
-            image_count += len(p.images)
 
             section_key = p.collection or p.brand or "General"
             if section_key not in section_map:
@@ -68,8 +62,8 @@ class CatalogBuilder:
             product_count=len(product_map),
             brand_count=len(brands),
             section_count=len(sections),
-            variant_count=variant_count,
-            image_count=image_count,
+            variant_count=sum(len(p.variants) for p in product_map.values()),
+            image_count=sum(len(p.images) for p in product_map.values()),
         )
 
         return CatalogDocument(

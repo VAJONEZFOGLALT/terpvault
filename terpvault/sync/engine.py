@@ -5,6 +5,7 @@ from importlib import import_module
 
 from sqlalchemy.orm import Session
 
+from terpvault.config.settings import settings
 from terpvault.config.supplier_config import SupplierConfig
 from terpvault.domain.models import SupplierData, ProductData, VariantData, ImageData, SnapshotData
 from terpvault.domain.changes import ChangeSet
@@ -139,6 +140,10 @@ class SyncEngine:
                 minor_count=report.minor,
             )
 
+            report_json_path = settings.catalogs_dir / self.config.slug / "changes.json"
+            report_json_path.parent.mkdir(parents=True, exist_ok=True)
+            report_json_path.write_text(report.to_json(), encoding="utf-8")
+
             session.commit()
 
             return {
@@ -148,6 +153,7 @@ class SyncEngine:
                 "images": image_count,
                 "snapshot_id": snapshot_row.id,
                 "checksum": snapshot_row.checksum,
+                "changes_written": report.total,
             }
         except Exception:
             session.rollback()

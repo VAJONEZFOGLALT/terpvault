@@ -18,7 +18,7 @@ class ShopifyNormalizer:
 
         normalized_variants = [
             {
-                "sku": v.get("sku") or v.get("id", ""),
+                "sku": str(v.get("sku") or v.get("id", "")),
                 "price": v.get("price"),
                 "available": v.get("available", True),
                 "options": {
@@ -60,7 +60,7 @@ class ShopifyNormalizer:
         product_type = product.get("product_type")
 
         return RawProduct(
-            external_id=str(first_variant.get("sku") or product.get("id", "")),
+            external_id=str(first_variant.get("sku") or product.get("id", "") or ""),
             name=title,
             description=product.get("body_html", ""),
             brand=vendor,

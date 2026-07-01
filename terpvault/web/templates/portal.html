@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TerpVault</title>
+<style>
+  :root { --primary: #2C5F2D; --bg: #f4f5f3; --card: #fff; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: #333; }
+  .container { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
+
+  header { padding: 40px 0 20px; }
+  header h1 { font-size: 1.8em; color: var(--primary); }
+  header p { color: #777; font-size: 0.9em; }
+
+  .supplier-card {
+    background: var(--card);
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: box-shadow 0.15s;
+  }
+  .supplier-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .supplier-name { font-size: 1.1em; font-weight: 600; color: #333; }
+  .supplier-meta { color: #888; font-size: 0.85em; margin-top: 4px; }
+  .supplier-actions { display: flex; gap: 8px; }
+
+  .btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.85em;
+    font-weight: 500;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn:hover { background: var(--primary); color: #fff; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: #1e4520; }
+
+  footer { text-align: center; padding: 40px; color: #aaa; font-size: 0.8em; }
+
+  .badge {
+    display: inline-block;
+    background: #e8f0e8;
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>TerpVault</h1>
+    <p>Supplier catalog publishing platform</p>
+  </header>
+
+  {% if suppliers %}
+    {% for s in suppliers %}
+    <div class="supplier-card">
+      <div>
+        <div class="supplier-name">{{ s.name }}</div>
+        <div class="supplier-meta">
+          {% if s.latest_catalog %}
+            <span class="badge">{{ s.latest_catalog.product_count }} products</span>
+            <span class="badge">{{ s.latest_catalog.brand_count }} brands</span>
+            <span class="badge">{{ s.latest_catalog.section_count }} sections</span>
+            <span style="margin-left: 8px;">{{ s.catalog_count }} catalog version{% if s.catalog_count != 1 %}s{% endif %}</span>
+          {% else %}
+            No catalogs generated yet.
+          {% endif %}
+        </div>
+      </div>
+      <div class="supplier-actions">
+        {% if s.catalog_count > 0 %}
+          <a href="/supplier/{{ s.slug }}" class="btn btn-primary">Open</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="text-align:center;color:#999;padding:60px 0;">No suppliers configured. Run <code>terpvault sync &lt;supplier&gt;</code> to get started.</p>
+  {% endif %}
+
+  <footer>
+    TerpVault {{ version }} &middot; Powered by suppliers
+  </footer>
+</div>
+</body>
+</html>

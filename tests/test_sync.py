@@ -1,11 +1,9 @@
 import json
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from terpvault.sync.engine import SyncEngine
 from terpvault.storage.database import get_session
-from terpvault.storage.repository import ProductRepo, VariantRepo, ImageRepo, SnapshotRepo, SupplierRepo
-from terpvault.storage.tables import ProductRow, SupplierRow
+from terpvault.storage.repository import ProductRepo, SnapshotRepo, SupplierRepo
 
 
 SAMPLE_PRODUCTS = [

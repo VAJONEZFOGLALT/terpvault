@@ -1,4 +1,5 @@
-from terpvault.storage.database import get_engine, Base
+from terpvault.storage.database import get_engine
+from sqlalchemy import inspect
 
 
 def test_database_initializes():
@@ -7,8 +8,8 @@ def test_database_initializes():
 
 
 def test_tables_created():
-    from sqlalchemy import inspect
     engine = get_engine()
     insp = inspect(engine)
-    tables = insp.get_table_names()
-    assert isinstance(tables, list)
+    tables = set(insp.get_table_names())
+    expected = {"suppliers", "products", "variants", "images", "snapshots", "change_sets"}
+    assert expected.issubset(tables), f"Missing tables: {expected - tables}"

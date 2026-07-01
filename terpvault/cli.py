@@ -15,6 +15,7 @@ from terpvault.sync.report import ChangeReport
 from terpvault.generate.builder import CatalogBuilder
 from terpvault.generate.integrity import check_catalog
 from terpvault.generate.export import export_json
+from terpvault.generate.search_index import write_search_index
 
 app = typer.Typer(
     name="terpvault",
@@ -121,6 +122,17 @@ def changes(
 
 
 @app.command()
+def serve(
+    port: int = typer.Option(8000, "--port", "-p", help="Port to serve on"),
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to"),
+):
+    """Start the TerpVault web portal."""
+    import uvicorn
+    typer.echo(f"Starting TerpVault portal at http://{host}:{port}")
+    uvicorn.run("terpvault.web.app:app", host=host, port=port, log_level="info")
+
+
+@app.command()
 def export(
     supplier: str,
     snapshot_id: str = typer.Option("", "--snapshot", help="Snapshot ID (defaults to latest)"),
@@ -172,7 +184,10 @@ def export(
 
         output_path = Path(output) if output else settings.catalogs_dir / supplier / f"catalog-{snap.id[:8]}.json"
         export_json(doc, output_path)
+
+        search_index_path = write_search_index(doc, settings.catalogs_dir / supplier)
         typer.echo(f"Exported: {output_path}")
+        typer.echo(f"  Search index: {search_index_path}")
         typer.echo(f"  Products: {doc.stats.product_count}")
         typer.echo(f"  Sections: {doc.stats.section_count}")
         typer.echo(f"  Brands:   {doc.stats.brand_count}")

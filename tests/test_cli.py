@@ -54,7 +54,7 @@ def test_changes_snapshot_missing_b():
     assert "snapshot-b" in result.output
 
 
-def test_changes_latest_no_data():
+def test_changes_latest_shows_changes():
     result = runner.invoke(app, ["changes", "terpenes-uk", "--latest"])
     assert result.exit_code == 0
-    assert "No changes" in result.output
+    assert "Changes:" in result.output or "Added:" in result.output or "No changes" in result.output

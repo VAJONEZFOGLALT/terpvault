@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @page {
+    size: A4;
+    margin: 2cm 1.8cm;
+    @bottom-center {
+      content: counter(page);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 9pt;
+      color: #666;
+    }
+  }
+  @page:first {
+    @bottom-center { content: none; }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #222;
+  }
+
+  /* Cover */
+  .cover {
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+  }
+  .cover h1 {
+    font-size: 28pt;
+    margin-bottom: 0.5cm;
+    color: {{ supplier.branding.primary_color }};
+  }
+  .cover .subtitle {
+    font-size: 14pt;
+    color: #555;
+    margin-bottom: 1cm;
+  }
+  .cover .metadata {
+    font-size: 10pt;
+    color: #888;
+  }
+
+  /* TOC */
+  .toc { page-break-after: always; }
+  .toc h2 { font-size: 18pt; margin-bottom: 0.5cm; color: {{ supplier.branding.primary_color }}; }
+  .toc ul { list-style: none; }
+  .toc li {
+    padding: 4pt 0;
+    font-size: 11pt;
+    border-bottom: 1px dotted #ccc;
+  }
+
+  /* Section */
+  .section-header {
+    page-break-before: always;
+    padding: 1cm 0 0.5cm;
+  }
+  .section-header h2 {
+    font-size: 22pt;
+    color: {{ supplier.branding.primary_color }};
+    margin-bottom: 0.3cm;
+  }
+  .section-header .section-subtitle {
+    font-size: 11pt;
+    color: #777;
+  }
+
+  /* Product grid */
+  .product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4cm;
+  }
+  .product-card {
+    width: 31%;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0.3cm;
+    page-break-inside: avoid;
+    margin-bottom: 0.3cm;
+  }
+  .product-card img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 0.2cm;
+  }
+  .product-card h3 {
+    font-size: 10pt;
+    margin-bottom: 2pt;
+    color: #333;
+  }
+  .product-card .brand {
+    font-size: 8pt;
+    color: #999;
+    margin-bottom: 2pt;
+  }
+  .product-card .price {
+    font-size: 11pt;
+    font-weight: bold;
+    color: {{ supplier.branding.primary_color }};
+    margin-bottom: 2pt;
+  }
+  .product-card .compare-price {
+    font-size: 9pt;
+    color: #999;
+    text-decoration: line-through;
+  }
+  .product-card .meta {
+    font-size: 8pt;
+    color: #777;
+  }
+  .product-card .description {
+    font-size: 8pt;
+    color: #555;
+    margin-top: 2pt;
+  }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<section class="cover">
+  <h1>{{ doc.cover.supplier_name }}</h1>
+  <p class="subtitle">{{ doc.cover.catalog_label }}</p>
+  <p class="metadata">
+    {{ doc.stats.product_count }} products &middot;
+    {{ doc.stats.brand_count }} brands &middot;
+    {{ doc.stats.section_count }} sections
+  </p>
+</section>
+
+<!-- TOC -->
+<section class="toc">
+  <h2>Table of Contents</h2>
+  <ul>
+  {% for entry in doc.toc %}
+    <li>{{ entry.label }}</li>
+  {% endfor %}
+  </ul>
+</section>
+
+<!-- Sections -->
+{% for section in doc.sections %}
+<section>
+  <div class="section-header">
+    <h2>{{ section.label }}</h2>
+    {% if section.subtitle %}
+      <p class="section-subtitle">{{ section.subtitle }}</p>
+    {% endif %}
+  </div>
+  <div class="product-grid">
+  {% for pid in section.product_ids %}
+    {% set p = doc.products[pid] %}
+    <div class="product-card">
+      {% if p.images %}
+        <img src="{{ p.images[0].url }}" alt="{{ p.images[0].alt_text or p.name }}">
+      {% endif %}
+      <h3>{{ p.name }}</h3>
+      {% if p.brand %}<p class="brand">{{ p.brand }}</p>{% endif %}
+      {% if p.price %}
+        <p class="price">£{{ "%.2f"|format(p.price) }}</p>
+      {% endif %}
+      {% if p.compare_at_price %}
+        <p class="compare-price">£{{ "%.2f"|format(p.compare_at_price) }}</p>
+      {% endif %}
+      {% if p.size or p.unit %}
+        <p class="meta">{{ p.size or "" }} {{ p.unit or "" }}</p>
+      {% endif %}
+      <p class="description">{{ p.description|striptags|truncate(120) }}</p>
+    </div>
+  {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+</body>
+</html>

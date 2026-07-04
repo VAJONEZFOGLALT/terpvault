@@ -4,6 +4,14 @@ Supplier synchronization and catalog publishing platform.
 
 It imports supplier product data, preserves every version as a snapshot, and generates premium wholesale catalogs as reusable publishing artifacts.
 
+## Live Demo
+
+Browse the live catalogue at **[https://terpvault.space](https://terpvault.space)** — no setup required.
+
+-   **Terpenes UK catalogue** — 337 products, 16 sections
+-   **Downloadable PDF** — optimized for mobile (17 MB) and print master (130 MB)
+-   **Full-text search**, brand pages, product timeline, changelog
+
 ## Quick Start
 
 ```bash

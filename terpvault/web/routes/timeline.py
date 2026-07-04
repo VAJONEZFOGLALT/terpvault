@@ -1,4 +1,3 @@
-from pathlib import Path
 import json
 
 from fastapi import APIRouter, Request
@@ -6,11 +5,12 @@ from fastapi.responses import HTMLResponse
 
 from terpvault.config.settings import settings
 from terpvault.web.template_config import render_string
+from terpvault.web.routes.common import load_catalog
 
 router = APIRouter()
 
 
-@router.get("/supplier/{slug}/timeline", response_class=HTMLResponse)
+@router.get("/catalogs/{slug}/timeline", response_class=HTMLResponse)
 def timeline_page(request: Request, slug: str):
     changes_path = settings.catalogs_dir / slug / "changes.json"
     if not changes_path.exists():

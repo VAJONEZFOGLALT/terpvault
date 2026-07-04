@@ -1,5 +1,4 @@
 import asyncio
-import json
 from pathlib import Path
 import typer
 
@@ -123,13 +122,15 @@ def changes(
 
 @app.command()
 def serve(
-    port: int = typer.Option(8000, "--port", "-p", help="Port to serve on"),
+    port: int = typer.Option(None, "--port", "-p", help="Port to serve on (default: 9199)"),
     host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to"),
 ):
     """Start the TerpVault web portal."""
     import uvicorn
-    typer.echo(f"Starting TerpVault portal at http://{host}:{port}")
-    uvicorn.run("terpvault.web.app:app", host=host, port=port, log_level="info")
+
+    chosen = port or int(os.environ.get("TERPVAULT_PORT", 9199))
+    typer.echo(f"TerpVault portal running at http://{host}:{chosen}")
+    uvicorn.run("terpvault.web.app:app", host=host, port=chosen, log_level="info")
 
 
 @app.command()

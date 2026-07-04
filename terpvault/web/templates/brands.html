@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Brands — {{ catalog.supplier_name }} — TerpVault{% endblock %}
+
+{% block head %}
+<style>
+  .brands-header { padding: 40px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .brands-header h1 { font-size: 2rem; font-weight: 400; }
+  .brands-header p { color: var(--text-secondary); margin-top: 8px; }
+
+  .brand-hero-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 32px; margin-bottom: 24px; transition: all var(--transition);
+  }
+  .brand-hero-card:hover { border-color: var(--green); box-shadow: var(--shadow-sm); }
+  .brand-hero-card h2 { font-size: 1.3rem; margin-bottom: 8px; }
+  .brand-hero-card p { color: var(--text-secondary); font-size: 14px; margin-bottom: 12px; }
+  .brand-hero-card .brand-stats { display: flex; gap: 16px; }
+  .brand-hero-card .brand-stats span { font-size: 13px; color: var(--text-tertiary); }
+  .brand-hero-card .brand-stats strong { color: var(--green); }
+  .brand-hero-card .brand-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; font-weight: 500; }
+
+  .brand-color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumbs">
+    <a href="/">TerpVault</a>
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}">{{ catalog.supplier_name }}</a>
+    <span class="sep">/</span>
+    <span class="current">Brands</span>
+  </nav>
+
+  <div class="brands-header">
+    <h1>Brands</h1>
+    <p>{{ brands|length }} brands in the {{ catalog.supplier_name }} catalogue</p>
+  </div>
+
+  {% set brand_colors = {
+    "Eybna": "#2ecc71",
+    "True Terpenes": "#2c6b9e",
+    "Terp Belt Farms": "#c4883a",
+    "Terpenes UK": "#2C5F2D",
+    "Prestige": "#d4a85c",
+    "DFT": "#b8863a",
+    "Hardware": "#666",
+    "Live Resin": "#6a3f8a",
+    "Duty Free Terpenes": "#b8863a",
+    "Terpenes UK - Flavour Concentrates": "#8d7f5a",
+    "Terpenes UK - Isolates": "#4d8aaa",
+    "Terpenes UK - Oil Soluble Flavours": "#8d7f5a",
+    "Terpenes UK - Diluents": "#8d7f5a",
+    "Terpenes UK - Strain Profiles": "#2C5F2D",
+    "Terpenes UK - Prestige": "#d4a85c",
+    "True Terpenes - Live Resin": "#6a3f8a",
+    "True Terpenes - Strain Profiles": "#2c6b9e",
+    "terpenes uk - Liquidisers": "#666"
+  } %}
+
+  {% for brand in brands %}
+  <a href="/catalogs/{{ slug }}/brands/{{ brand.slug }}" class="brand-hero-card" style="border-left: 4px solid {{ brand_colors.get(brand.name, 'var(--green)') }};">
+    <h2><span class="brand-color-dot" style="background:{{ brand_colors.get(brand.name, 'var(--green)') }};"></span>{{ brand.name }}</h2>
+    <div class="brand-stats">
+      <span><strong>{{ brand.count }}</strong> products</span>
+      {% if brand.sections %}
+      <span><strong>{{ brand.sections|length }}</strong> sections</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

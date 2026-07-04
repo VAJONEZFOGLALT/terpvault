@@ -9,37 +9,37 @@ from terpvault.generate.artifacts.pdf import PDFGenerator
 def _make_doc() -> CatalogDocument:
     return CatalogDocument(
         supplier_slug="terpenes-uk",
-        cover=CoverInfo(supplier_name="Terpenes UK", catalog_label="June 2026", product_count=2, brand_count=1),
+        cover=CoverInfo(supplier_name="Terpenes UK", catalog_label="June 2026", product_count=3, brand_count=1),
         toc=[
-            TocEntry(label="Citrus", section_index=0),
-            TocEntry(label="Herbal", section_index=1),
+            TocEntry(label="Eybna", section_index=0),
+            TocEntry(label="True Terpenes", section_index=1),
         ],
         sections=[
-            SectionInfo(index=0, label="Citrus", type=SectionType.collection, product_ids=["P1", "P2"]),
-            SectionInfo(index=1, label="Herbal", type=SectionType.collection, product_ids=["P3"]),
+            SectionInfo(index=0, label="Eybna", type=SectionType.collection, product_ids=["P1", "P2"]),
+            SectionInfo(index=1, label="True Terpenes", type=SectionType.collection, product_ids=["P3"]),
         ],
         products={
             "P1": CatalogProduct(
-                external_id="P1", name="Limonene", brand="Terpenes UK",
+                external_id="P1", name="Limonene", brand="Eybna",
                 description="Premium Limonene terpene.", price=14.99, unit="ml", size="10ml",
                 variants=[{"sku": "LIM-10ML", "price": 14.99}],
                 images=[{"url": "https://via.placeholder.com/300", "position": 0, "alt_text": ""}],
             ),
             "P2": CatalogProduct(
-                external_id="P2", name="Orange Terpene", brand="Terpenes UK",
+                external_id="P2", name="Orange Terpene", brand="Eybna",
                 description="Sweet orange profile.", price=12.99, unit="ml", size="10ml",
                 variants=[{"sku": "ORA-10ML", "price": 12.99}],
                 images=[],
             ),
             "P3": CatalogProduct(
-                external_id="P3", name="Myrcene", brand="Terpenes UK",
+                external_id="P3", name="Myrcene", brand="True Terpenes",
                 description="Earthy notes.", price=13.99, unit="ml", size="10ml",
                 compare_at_price=16.99,
                 variants=[{"sku": "MYR-10ML", "price": 13.99}],
                 images=[{"url": "https://via.placeholder.com/300", "position": 0, "alt_text": ""}],
             ),
         },
-        stats=CatalogStats(product_count=3, brand_count=1, section_count=2, variant_count=3, image_count=2),
+        stats=CatalogStats(product_count=3, brand_count=2, section_count=2, variant_count=3, image_count=2),
     )
 
 

@@ -3,184 +3,837 @@
 <head>
 <meta charset="utf-8">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
   @page {
     size: A4;
-    margin: 2cm 1.8cm;
+    margin: 1.5cm 1.4cm 1.8cm;
     @bottom-center {
       content: counter(page);
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      font-size: 9pt;
-      color: #666;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 7pt;
+      font-weight: 400;
+      color: #999;
+    }
+    @top-left {
+      content: string(chapter);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 6pt;
+      font-weight: 500;
+      color: #bbb;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    @top-right {
+      content: string(section);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 6pt;
+      font-weight: 400;
+      color: #ccc;
     }
   }
-  @page:first {
-    @bottom-center { content: none; }
-  }
+  @page:first { @bottom-center { content: none; } @top-left { content: none; } @top-right { content: none; } }
+  @page toc { @bottom-center { content: none; } @top-left { content: none; } @top-right { content: none; } }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 10pt;
-    line-height: 1.5;
-    color: #222;
+
+  :root {
+    --green: #3d9a3e;
+    --green-mid: #4dba4e;
+    --green-light: #8ddf6e;
+    --green-bg: rgba(61,154,62,0.10);
+    --green-pale: rgba(61,154,62,0.05);
+    --charcoal: #e0dcd5;
+    --grey-dark: #d0ccc5;
+    --grey: #a09990;
+    --grey-light: #807870;
+    --grey-pale: #605850;
+    --border: #333;
+    --card-border: #e0e0e0;
+    --card-bg: #ffffff;
+    --canvas: #f5f5f0;
+    --gold: #d4a85c;
+    --gold-bg: rgba(212,168,92,0.10);
+    --infusion: #8d7f5a;
+    --infusion-bg: rgba(141,127,90,0.10);
+    --isolates: #4d8aaa;
+    --isolates-bg: rgba(77,138,170,0.10);
+    --hardware: #666;
+    --hardware-bg: rgba(50,50,50,0.06);
+    --sample: #7f5a7e;
+    --sample-bg: rgba(127,90,126,0.10);
+    --live-bg: #0a0a0a;
+    --live-text: #d4c8b8;
+    --live-accent: var(--gold);
+    --accent-emerald: #2ecc71;
+    --accent-navy: #2c6b9e;
+    --accent-orange: #c4883a;
+    --accent-gold: var(--gold);
+    --accent-amber: #b8863a;
+    --accent-forest: #1a5c2a;
+    --font-heading: 'DM Sans', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-accent: 'DM Sans', sans-serif;
   }
 
-  /* Cover */
+  body {
+    font-family: var(--font-body);
+    font-size: 9pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    background: #ffffff;
+  }
+
   .cover {
     page-break-after: always;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    text-align: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    height: 100vh; text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg, #0d2810 0%, #1a3a1a 30%, #0d1a0d 70%, #000 100%);
   }
-  .cover h1 {
-    font-size: 28pt;
-    margin-bottom: 0.5cm;
-    color: {{ supplier.branding.primary_color }};
+  .cover::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--green), var(--green-light), var(--green-mid));
   }
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 18cm; height: 18cm;
+    transform: translate(-50%, -50%);
+    background:
+      radial-gradient(circle at 25% 35%, transparent 32%, rgba(61,154,62,0.06) 32.5%, transparent 33%),
+      radial-gradient(circle at 75% 65%, transparent 28%, rgba(61,154,62,0.04) 28.5%, transparent 29%),
+      radial-gradient(circle at 50% 25%, transparent 44%, rgba(61,154,62,0.03) 44.5%, transparent 45%),
+      radial-gradient(circle at 15% 75%, transparent 35%, rgba(61,154,62,0.05) 35.5%, transparent 36%),
+      radial-gradient(circle at 85% 30%, transparent 38%, rgba(61,154,62,0.04) 38.5%, transparent 39%);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+  .cover .logo-wrap {
+    position: relative; z-index: 1;
+    margin-bottom: 0.3cm;
+  }
+  .cover .logo-wrap img { height: 2.8cm; object-fit: contain; filter: brightness(0) invert(1); }
+  .cover .rule { width: 2cm; height: 1.5px; background: var(--green-mid); margin: 0.5cm auto; position: relative; z-index: 1; }
   .cover .subtitle {
-    font-size: 14pt;
-    color: #555;
-    margin-bottom: 1cm;
+    font-family: var(--font-accent);
+    font-size: 11pt; font-weight: 400; color: rgba(255,255,255,0.6);
+    letter-spacing: 6px; text-transform: uppercase;
+    position: relative; z-index: 1;
   }
-  .cover .metadata {
-    font-size: 10pt;
+  .cover .edition {
+    font-family: var(--font-accent);
+    font-size: 8pt; color: rgba(255,255,255,0.35); letter-spacing: 2px;
+    margin-top: 0.3cm;
+    position: relative; z-index: 1;
+  }
+  .cover .meta {
+    font-family: var(--font-accent);
+    font-size: 7pt; color: rgba(255,255,255,0.25); margin-top: 0.8cm;
+    letter-spacing: 1.5px;
+    position: relative; z-index: 1;
+  }
+  .cover .meta span { display: inline-block; padding: 0 6pt; }
+
+  .toc { page-break-after: always; padding-top: 2.5cm; page: toc; }
+  .toc h2 {
+    font-family: var(--font-accent);
+    font-size: 11pt; font-weight: 500; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--green);
+    margin-bottom: 0.8cm;
+  }
+  .toc-section { display: flex; align-items: baseline; padding: 5pt 0; border-bottom: 1px solid #e0e0e0; }
+  .toc-num { font-size: 18pt; font-weight: 200; color: var(--green); width: 1.2cm; font-family: var(--font-heading); }
+  .toc-title { font-size: 10pt; color: #1a1a1a; flex: 1; font-family: var(--font-heading); font-weight: 500; }
+  .toc-page { font-size: 9pt; color: #999; font-family: var(--font-accent); font-weight: 600; min-width: 1cm; text-align: right; }
+  .toc-sub { padding: 2pt 0 6pt 1.2cm; font-size: 6.5pt; color: #999; font-family: var(--font-accent); letter-spacing: 0.3px; }
+  .toc-sub span { margin-right: 8pt; display: inline-block; border-left: 1px solid var(--green-mid); padding-left: 6pt; }
+
+  .quick-guide { page-break-after: always; padding-top: 2.5cm; }
+  .quick-guide h2 {
+    font-family: var(--font-accent);
+    font-size: 11pt; font-weight: 500; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--green);
+    margin-bottom: 0.6cm;
+  }
+  .qg-grid { display: flex; flex-wrap: wrap; gap: 0.25cm; }
+  .qg-card {
+    width: 48%; padding: 0.25cm 0.3cm;
+    border: 1px solid #e0e0e0; border-radius: 2px;
+    background: #fafafa; page-break-inside: avoid;
+  }
+  .qg-card .label { font-family: var(--font-heading); font-size: 8.5pt; font-weight: 600; color: #1a1a1a; }
+  .qg-card .def { font-family: var(--font-body); font-size: 7pt; color: #666; margin-top: 2pt; line-height: 1.4; }
+
+  /* =============================================
+     CHAPTER OPENER
+     ============================================= */
+  .chapter-opener {
+    page-break-before: always;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 0 0.4cm 0;
+    margin-bottom: 0.2cm;
+    position: relative;
+    min-height: 3.2cm;
+  }
+  .chapter-opener[data-chapter] { string-set: chapter attr(data-chapter); }
+
+  .chapter-opener::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 1px;
+    z-index: 0;
+  }
+  .chapter-opener[data-chapter="Strain Profiles"]::before {
+    background: linear-gradient(135deg, #f0f7f0 0%, #e8f0e5 60%);
+  }
+  .chapter-opener[data-chapter="Live Resin"]::before {
+    background: linear-gradient(135deg, #0a0a0a 0%, #141210 60%);
+  }
+  .chapter-opener[data-chapter="Infusion"]::before {
+    background: linear-gradient(135deg, #f0ede6 0%, #e8e2d8 60%);
+  }
+  .chapter-opener[data-chapter="Isolates"]::before {
+    background: linear-gradient(135deg, #eef2f8 0%, #e4eaf0 60%);
+  }
+  .chapter-opener[data-chapter="Hardware & Ingredients"]::before {
+    background: linear-gradient(135deg, #e8e8e8 0%, #ddd 60%);
+  }
+  .chapter-opener[data-chapter="Sample Packs"]::before {
+    background: linear-gradient(135deg, #f5f0f5 0%, #ece4ec 60%);
+  }
+  .chapter-opener[data-chapter="New Releases"]::before {
+    background: linear-gradient(135deg, #fef8f0 0%, #f8f0e0 60%);
+  }
+  .chapter-opener[data-chapter="Clearance"]::before {
+    background: linear-gradient(135deg, #fef0f0 0%, #f8e0e0 60%);
+  }
+
+  .chapter-opener[data-chapter="Strain Profiles"] { border-bottom: 2px solid var(--green-mid); }
+  .chapter-opener[data-chapter="Live Resin"] { border-bottom: 2px solid var(--gold); }
+  .chapter-opener[data-chapter="Infusion"] { border-bottom: 2px solid var(--infusion); }
+  .chapter-opener[data-chapter="Isolates"] { border-bottom: 2px solid var(--isolates); }
+  .chapter-opener[data-chapter="Hardware & Ingredients"] { border-bottom: 2px solid #888; }
+  .chapter-opener[data-chapter="Sample Packs"] { border-bottom: 2px solid var(--sample); }
+  .chapter-opener[data-chapter="New Releases"] { border-bottom: 2px solid var(--accent-amber); }
+  .chapter-opener[data-chapter="Clearance"] { border-bottom: 2px solid #c0392b; }
+
+  .chapter-opener h1, .chapter-opener .desc { position: relative; z-index: 1; }
+
+  .chapter-opener h1 {
+    font-family: var(--font-heading);
+    font-size: 22pt; font-weight: 300; letter-spacing: 2px;
+    text-transform: uppercase; line-height: 1.1;
+  }
+  .chapter-opener[data-chapter="Strain Profiles"] h1 { color: var(--green); }
+  .chapter-opener[data-chapter="Live Resin"] h1 { color: var(--gold); font-weight: 200; letter-spacing: 4px; }
+  .chapter-opener[data-chapter="Infusion"] h1 { color: var(--infusion); }
+  .chapter-opener[data-chapter="Isolates"] h1 { color: var(--isolates); }
+  .chapter-opener[data-chapter="Hardware & Ingredients"] h1 { color: #444; font-weight: 400; }
+  .chapter-opener[data-chapter="Sample Packs"] h1 { color: var(--sample); }
+  .chapter-opener[data-chapter="New Releases"] h1 { color: var(--accent-amber); }
+  .chapter-opener[data-chapter="Clearance"] h1 { color: #c0392b; }
+
+  .chapter-opener .desc {
+    font-family: var(--font-body);
+    font-size: 8pt; max-width: 55%; margin-top: 0.1cm; line-height: 1.4;
+  }
+  .chapter-opener[data-chapter="Live Resin"] .desc { color: rgba(212,200,184,0.6); }
+  .chapter-opener[data-chapter="Hardware & Ingredients"] .desc { color: #666; }
+  .chapter-opener:not([data-chapter="Live Resin"]):not([data-chapter="Hardware & Ingredients"]) .desc { color: #666; }
+
+  /* =============================================
+     SECTION HEADER
+     ============================================= */
+  .section-header {
+    padding: 0.25cm 0 0.1cm 0;
+    string-set: section attr(data-label);
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0.1cm;
+  }
+  .section-header.section-break {
+    page-break-before: always;
+    padding-top: 0.5cm;
+  }
+  .section-header.section-break.brand-section { page-break-before: always; }
+  .section-header h2 {
+    font-family: var(--font-heading);
+    font-size: 11pt; font-weight: 500; letter-spacing: 0.3px;
+    color: #1a1a1a;
+  }
+  .section-header .tagline {
+    font-family: var(--font-accent);
+    font-size: 6.5pt; color: #888; margin-top: 0.04cm;
+    font-weight: 400; max-width: 70%; line-height: 1.4;
+  }
+  .section-header .count {
+    font-family: var(--font-accent);
+    font-size: 7pt; color: var(--green-mid); margin-top: 0.04cm;
+    font-weight: 600; letter-spacing: 0.3px;
+  }
+
+  .section-header.brand-section {
+    padding: 0.3cm 0 0.15cm 0.35cm;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0.15cm;
+  }
+
+  .section-header.brand-section[data-brand="Eybna"] { border-left: 3px solid var(--accent-emerald); }
+  .section-header.brand-section[data-brand="Eybna"] .count { color: var(--accent-emerald); }
+
+  .section-header.brand-section[data-brand="True Terpenes"] { border-left: 3px solid var(--accent-navy); }
+  .section-header.brand-section[data-brand="True Terpenes"] h2 { color: #1a2a3a; }
+  .section-header.brand-section[data-brand="True Terpenes"] .tagline { color: #8899aa; }
+  .section-header.brand-section[data-brand="True Terpenes"] .count { color: var(--accent-navy); }
+
+  .section-header.brand-section[data-brand="Terp Belt Farms"] { border-left: 3px solid var(--accent-orange); }
+  .section-header.brand-section[data-brand="Terp Belt Farms"] .count { color: var(--accent-orange); }
+
+  .section-header.brand-section[data-brand="Terpenes UK"] { border-left: 3px solid var(--green); }
+  .section-header.brand-section[data-brand="Terpenes UK"] .count { color: var(--green); }
+
+  .section-header.brand-section[data-brand="Prestige"] { border-left: 3px solid var(--accent-gold); }
+  .section-header.brand-section[data-brand="Prestige"] h2 { color: #5a4a2a; }
+  .section-header.brand-section[data-brand="Prestige"] .count { color: var(--accent-gold); }
+
+  .section-header.brand-section[data-brand="DFT"] { border-left: 3px solid var(--accent-amber); }
+  .section-header.brand-section[data-brand="DFT"] .count { color: var(--accent-amber); }
+
+  .section-header.brand-section[data-brand="Liquidisers"] { border-left: 3px solid #888; }
+  .section-header.brand-section[data-brand="Diluents"] { border-left: 3px solid var(--infusion); }
+  .section-header.brand-section[data-brand="Hardware"] { border-left: 3px solid #888; }
+  .section-header.brand-section[data-brand="Oil Soluble"] { border-left: 3px solid var(--infusion); }
+  .section-header.brand-section[data-brand="NEU Bag"] { border-left: 3px solid var(--sample); }
+
+  .product-grid {
+    display: flex; flex-wrap: wrap; gap: 0.16cm; margin-top: 0.1cm;
+    page-break-inside: auto;
+  }
+  .product-grid.grid-2col { gap: 0.2cm; }
+
+  /* =============================================
+     PRODUCT CARD
+     ============================================= */
+  .product-card {
+    width: 32.5%; page-break-inside: avoid; margin-bottom: 0.16cm;
+    background: var(--card-bg);
+    border: 0.5px solid var(--card-border);
+    border-radius: 2px;
+    position: relative;
+  }
+  .product-grid.grid-2col .product-card { width: 48.8%; page-break-inside: auto; }
+  .product-card.hero-card { width: 48.8%; }
+  .product-card.hero-card .product-card-image { height: 5.5cm; }
+  .product-card.hero-card .product-card-name { font-size: 11pt; }
+  .product-card.hero-card .product-card-price { font-size: 11pt; }
+
+  .product-card.sample-card {
+    width: 100%;
+    display: flex; gap: 0.2cm; align-items: flex-start;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.15cm; margin-bottom: 0.15cm;
+    border-left: none;
+  }
+  .product-card.sample-card .product-card-image { width: 3cm; height: 3cm; flex-shrink: 0; }
+  .product-card.sample-card .product-card-body { flex: 1; padding: 0; }
+  .product-card.sample-card .product-card-name { font-size: 10pt; }
+  .product-card.sample-card .product-card-desc { font-size: 7pt; }
+
+  .product-card.isolate-card {
+    width: 48.8%;
+    border: none;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.1cm;
+  }
+  .product-card.isolate-card .product-card-image { display: none; }
+  .product-card.isolate-card .product-card-body { padding: 0.05cm 0; }
+  .product-card.isolate-card .product-card-name { font-size: 8pt; }
+  .product-card.isolate-card .product-card-price { font-size: 8pt; }
+  .product-card.isolate-card .product-card-desc { display: none; }
+
+  .product-card.hardware-card { width: 48.8%; }
+  .product-card.hardware-card .product-card-image { height: 4.5cm; background: #f0f0f0; }
+
+  .product-card-image {
+    width: 100%; height: 3.2cm; overflow: hidden;
+    background: var(--card-bg); display: flex; align-items: center; justify-content: center;
+    border-bottom: 0.5px solid var(--card-border);
+  }
+  .product-card-image img { width: 100%; height: 100%; object-fit: contain; padding: 0.12cm; }
+
+  .product-card-body { padding: 0.07cm 0.1cm 0.1cm; }
+
+  .product-card-brand {
+    font-family: var(--font-accent);
+    font-size: 5pt; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2pt;
+    font-weight: 600;
     color: #888;
   }
+  .product-card-name {
+    font-family: var(--font-heading);
+    font-size: 7.5pt; font-weight: 600; color: #1a1a1a;
+    margin-bottom: 2pt; line-height: 1.2;
+  }
+  .product-card-badge-row { margin-bottom: 1pt; }
+  .product-card-badge {
+    display: inline-block;
+    font-family: var(--font-accent);
+    font-size: 4.5pt; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 1pt 3pt; border-radius: 1px;
+    margin-right: 2pt;
+  }
+  .badge-cdt { background: var(--green-bg); color: var(--green); }
+  .badge-bdt { background: #e8f0f5; color: #2a6f8a; }
+  .badge-live { background: #f0eaf5; color: #6a3f8a; }
+  .badge-oil { background: #f5eadd; color: #8a6a2a; }
+  .badge-new { background: #fce8e8; color: #c0392b; }
+  .badge-premium { background: #f5f3e8; color: #7a7020; }
+  .badge-sample { background: var(--sample-bg); color: var(--sample); }
 
-  /* TOC */
-  .toc { page-break-after: always; }
-  .toc h2 { font-size: 18pt; margin-bottom: 0.5cm; color: {{ supplier.branding.primary_color }}; }
-  .toc ul { list-style: none; }
-  .toc li {
-    padding: 4pt 0;
-    font-size: 11pt;
-    border-bottom: 1px dotted #ccc;
+  .product-card-stock {
+    font-family: var(--font-accent);
+    font-size: 4.5pt; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 1pt;
+  }
+  .product-card-stock.out-of-stock { color: #c0392b; }
+  .product-card-price {
+    font-family: var(--font-heading);
+    font-size: 8pt; font-weight: 700;
+    margin-bottom: 0;
+  }
+  .product-card-sizes {
+    font-family: var(--font-accent);
+    font-size: 5pt; color: #888; margin-bottom: 1pt;
+  }
+  .product-card-sizes span { display: inline-block; margin-right: 4pt; }
+  .product-card-desc {
+    font-family: var(--font-body);
+    font-size: 5.5pt; color: #666; line-height: 1.25;
+  }
+  .product-card-note {
+    font-family: var(--font-accent);
+    font-size: 5pt; color: #888; font-style: italic;
+    margin-top: 1pt;
   }
 
-  /* Section */
-  .section-header {
-    page-break-before: always;
-    padding: 1cm 0 0.5cm;
+  /* =============================================
+     BRAND CARD THEMES
+     ============================================= */
+  .product-card[data-brand="Eybna"] {
+    background: #fafcfa;
+    border-color: #dce8d4;
   }
-  .section-header h2 {
-    font-size: 22pt;
-    color: {{ supplier.branding.primary_color }};
-    margin-bottom: 0.3cm;
-  }
-  .section-header .section-subtitle {
-    font-size: 11pt;
-    color: #777;
-  }
+  .product-card[data-brand="Eybna"] .product-card-name { color: #2a3a2a; }
+  .product-card[data-brand="Eybna"] .product-card-brand { color: var(--accent-emerald); }
+  .product-card[data-brand="Eybna"] .product-card-price { color: #1a7a3a; }
+  .product-card[data-brand="Eybna"] .product-card-desc { color: #5a6a5a; }
+  .product-card[data-brand="Eybna"] .product-card-stock { color: var(--accent-emerald); }
+  .product-card[data-brand="Eybna"] .product-card-sizes { color: #6a7a6a; }
 
-  /* Product grid */
-  .product-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4cm;
+  .product-card[data-brand="True Terpenes"] {
+    background: #0d1117;
+    border-color: #1a2744;
   }
-  .product-card {
-    width: 31%;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 0.3cm;
-    page-break-inside: avoid;
-    margin-bottom: 0.3cm;
+  .product-card[data-brand="True Terpenes"] .product-card-name { color: #c8dce8; }
+  .product-card[data-brand="True Terpenes"] .product-card-brand { color: #4a8ccf; }
+  .product-card[data-brand="True Terpenes"] .product-card-price { color: #4a8ccf; }
+  .product-card[data-brand="True Terpenes"] .product-card-desc { color: #8a9aaa; }
+  .product-card[data-brand="True Terpenes"] .product-card-stock { color: #4a8ccf; }
+  .product-card[data-brand="True Terpenes"] .product-card-sizes { color: #6a7a8a; }
+  .product-card[data-brand="True Terpenes"] .badge-cdt { background: rgba(44,107,158,0.15); color: #5a9ccf; }
+  .product-card[data-brand="True Terpenes"] .badge-premium { background: rgba(44,107,158,0.12); color: #5a9ccf; }
+  .product-card[data-brand="True Terpenes"] .badge-live { background: rgba(44,107,158,0.12); color: #5a9ccf; }
+
+  .product-card[data-brand="Terp Belt Farms"] {
+    background: #faf7f0;
+    border-color: #e0d5c0;
   }
-  .product-card img {
-    width: 100%;
-    height: auto;
-    margin-bottom: 0.2cm;
+  .product-card[data-brand="Terp Belt Farms"] .product-card-name { color: #3a3025; }
+  .product-card[data-brand="Terp Belt Farms"] .product-card-brand { color: var(--accent-orange); }
+  .product-card[data-brand="Terp Belt Farms"] .product-card-price { color: #b8762a; }
+  .product-card[data-brand="Terp Belt Farms"] .product-card-desc { color: #6a5a4a; }
+  .product-card[data-brand="Terp Belt Farms"] .product-card-stock { color: var(--accent-orange); }
+  .product-card[data-brand="Terp Belt Farms"] .product-card-sizes { color: #7a6a5a; }
+
+  .product-card[data-brand="Terpenes UK"] {
+    background: #f8fbf8;
+    border-color: #c8dcc0;
   }
-  .product-card h3 {
-    font-size: 10pt;
-    margin-bottom: 2pt;
-    color: #333;
+  .product-card[data-brand="Terpenes UK"] .product-card-name { color: #1a2a1a; }
+  .product-card[data-brand="Terpenes UK"] .product-card-brand { color: var(--green); }
+  .product-card[data-brand="Terpenes UK"] .product-card-price { color: #2d8a2e; }
+  .product-card[data-brand="Terpenes UK"] .product-card-desc { color: #4a6a4a; }
+  .product-card[data-brand="Terpenes UK"] .product-card-stock { color: var(--green); }
+  .product-card[data-brand="Terpenes UK"] .product-card-sizes { color: #5a7a5a; }
+
+  .product-card[data-brand="Prestige"] {
+    background: #fdfcfa;
+    border-color: #d0c8b8;
+    border-left: 2px solid var(--accent-gold);
   }
-  .product-card .brand {
-    font-size: 8pt;
-    color: #999;
-    margin-bottom: 2pt;
+  .product-card[data-brand="Prestige"] .product-card-name { color: #2a2520; font-weight: 700; }
+  .product-card[data-brand="Prestige"] .product-card-brand { color: var(--accent-gold); }
+  .product-card[data-brand="Prestige"] .product-card-price { color: #b8963a; }
+  .product-card[data-brand="Prestige"] .product-card-desc { color: #6a6050; }
+  .product-card[data-brand="Prestige"] .product-card-stock { color: var(--accent-gold); }
+  .product-card[data-brand="Prestige"] .product-card-sizes { color: #7a7060; }
+
+  .product-card[data-brand="DFT"] {
+    background: #fcf9f4;
+    border-color: #d8c8a8;
   }
-  .product-card .price {
-    font-size: 11pt;
-    font-weight: bold;
-    color: {{ supplier.branding.primary_color }};
-    margin-bottom: 2pt;
+  .product-card[data-brand="DFT"] .product-card-name { color: #3a3020; }
+  .product-card[data-brand="DFT"] .product-card-brand { color: var(--accent-amber); }
+  .product-card[data-brand="DFT"] .product-card-price { color: #a8702a; }
+  .product-card[data-brand="DFT"] .product-card-desc { color: #6a5a3a; }
+  .product-card[data-brand="DFT"] .product-card-stock { color: var(--accent-amber); }
+  .product-card[data-brand="DFT"] .product-card-sizes { color: #7a6a4a; }
+
+  .product-card[data-brand="Liquidisers"] {
+    background: #fafafa;
+    border-color: #d0d0c8;
   }
-  .product-card .compare-price {
-    font-size: 9pt;
-    color: #999;
-    text-decoration: line-through;
+  .product-card[data-brand="Liquidisers"] .product-card-name { color: #2a2a28; }
+  .product-card[data-brand="Liquidisers"] .product-card-brand { color: #666; }
+  .product-card[data-brand="Liquidisers"] .product-card-price { color: #555; }
+  .product-card[data-brand="Liquidisers"] .product-card-desc { color: #5a5a58; }
+  .product-card[data-brand="Liquidisers"] .product-card-stock { color: #555; }
+  .product-card[data-brand="Liquidisers"] .product-card-sizes { color: #6a6a68; }
+
+  .product-card[data-brand="Diluents"] {
+    background: #faf8f4;
+    border-color: #d0c8b8;
   }
-  .product-card .meta {
-    font-size: 8pt;
-    color: #777;
+  .product-card[data-brand="Diluents"] .product-card-name { color: #2a2520; }
+  .product-card[data-brand="Diluents"] .product-card-brand { color: var(--infusion); }
+  .product-card[data-brand="Diluents"] .product-card-price { color: #6a5a3a; }
+  .product-card[data-brand="Diluents"] .product-card-desc { color: #5a5040; }
+  .product-card[data-brand="Diluents"] .product-card-stock { color: var(--infusion); }
+  .product-card[data-brand="Diluents"] .product-card-sizes { color: #6a6050; }
+
+  .product-card[data-brand="Hardware"] {
+    background: #f5f5f5;
+    border-color: #c0c0b8;
   }
-  .product-card .description {
-    font-size: 8pt;
-    color: #555;
-    margin-top: 2pt;
+  .product-card[data-brand="Hardware"] .product-card-name { color: #1a1a1a; }
+  .product-card[data-brand="Hardware"] .product-card-brand { color: #555; }
+  .product-card[data-brand="Hardware"] .product-card-price { color: #444; }
+  .product-card[data-brand="Hardware"] .product-card-desc { color: #4a4a4a; }
+  .product-card[data-brand="Hardware"] .product-card-stock { color: #555; }
+  .product-card[data-brand="Hardware"] .product-card-sizes { color: #5a5a5a; }
+
+  .product-card[data-brand="Oil Soluble"] {
+    background: #faf8f4;
+    border-color: #d0c8b8;
+  }
+  .product-card[data-brand="Oil Soluble"] .product-card-name { color: #2a2520; }
+  .product-card[data-brand="Oil Soluble"] .product-card-brand { color: var(--infusion); }
+  .product-card[data-brand="Oil Soluble"] .product-card-price { color: #6a5a3a; }
+  .product-card[data-brand="Oil Soluble"] .product-card-desc { color: #5a5040; }
+  .product-card[data-brand="Oil Soluble"] .product-card-stock { color: var(--infusion); }
+  .product-card[data-brand="Oil Soluble"] .product-card-sizes { color: #6a6050; }
+
+  .product-card[data-brand="NEU Bag"] {
+    background: #faf8fa;
+    border-color: #d0c0d0;
+  }
+  .product-card[data-brand="NEU Bag"] .product-card-name { color: #2a202a; }
+  .product-card[data-brand="NEU Bag"] .product-card-brand { color: var(--sample); }
+  .product-card[data-brand="NEU Bag"] .product-card-price { color: #7f5a7e; }
+  .product-card[data-brand="NEU Bag"] .product-card-desc { color: #5a4a5a; }
+  .product-card[data-brand="NEU Bag"] .product-card-stock { color: var(--sample); }
+  .product-card[data-brand="NEU Bag"] .product-card-sizes { color: #6a5a6a; }
+
+  .product-card[data-brand="Live Resin"] {
+    background: #141210;
+    border-color: rgba(212,168,92,0.3);
+  }
+  .product-card[data-brand="Live Resin"] .product-card-name { color: #d4c8b8; }
+  .product-card[data-brand="Live Resin"] .product-card-brand { color: var(--gold); }
+  .product-card[data-brand="Live Resin"] .product-card-price { color: var(--gold); }
+  .product-card[data-brand="Live Resin"] .product-card-desc { color: #a09888; }
+  .product-card[data-brand="Live Resin"] .product-card-stock { color: var(--gold); }
+  .product-card[data-brand="Live Resin"] .product-card-sizes { color: #8a8070; }
+  .product-card[data-brand="Live Resin"] .badge-live { background: rgba(212,168,92,0.15); color: var(--gold); }
+  .product-card[data-brand="Live Resin"] .badge-premium { background: rgba(212,168,92,0.10); color: var(--gold); }
+
+  .product-card[data-brand="Infusion"] {
+    background: #f8f6f0;
+    border-color: #d0c8b4;
+  }
+  .product-card[data-brand="Infusion"] .product-card-name { color: #2a2520; }
+  .product-card[data-brand="Infusion"] .product-card-brand { color: var(--infusion); }
+  .product-card[data-brand="Infusion"] .product-card-price { color: #6a5a3a; }
+  .product-card[data-brand="Infusion"] .product-card-desc { color: #5a5040; }
+  .product-card[data-brand="Infusion"] .product-card-stock { color: var(--infusion); }
+  .product-card[data-brand="Infusion"] .product-card-sizes { color: #6a6050; }
+
+  .product-card[data-brand="Isolates"] {
+    background: #f5f8fa;
+    border-color: #c0d0d8;
+  }
+  .product-card[data-brand="Isolates"] .product-card-name { color: #1a2a2a; }
+  .product-card[data-brand="Isolates"] .product-card-brand { color: var(--isolates); }
+  .product-card[data-brand="Isolates"] .product-card-price { color: #2a6a8a; }
+  .product-card[data-brand="Isolates"] .product-card-desc { color: #4a5a5a; }
+  .product-card[data-brand="Isolates"] .product-card-stock { color: var(--isolates); }
+  .product-card[data-brand="Isolates"] .product-card-sizes { color: #5a6a6a; }
+
+  .product-card[data-brand="Hardware & Ingredients"] {
+    background: #f5f5f5;
+    border-color: #c0c0b8;
+  }
+  .product-card[data-brand="Hardware & Ingredients"] .product-card-name { color: #1a1a1a; }
+  .product-card[data-brand="Hardware & Ingredients"] .product-card-brand { color: #555; }
+  .product-card[data-brand="Hardware & Ingredients"] .product-card-price { color: #444; }
+  .product-card[data-brand="Hardware & Ingredients"] .product-card-desc { color: #4a4a4a; }
+  .product-card[data-brand="Hardware & Ingredients"] .product-card-stock { color: #555; }
+  .product-card[data-brand="Hardware & Ingredients"] .product-card-sizes { color: #5a5a5a; }
+
+  .product-card[data-brand="Sample Packs"] {
+    background: #faf8fa;
+    border-color: #d0c0d0;
+    border-left: 2px solid var(--sample);
+  }
+  .product-card[data-brand="Sample Packs"] .product-card-name { color: #2a202a; }
+  .product-card[data-brand="Sample Packs"] .product-card-brand { color: var(--sample); }
+  .product-card[data-brand="Sample Packs"] .product-card-price { color: #7f5a7e; }
+  .product-card[data-brand="Sample Packs"] .product-card-desc { color: #5a4a5a; }
+  .product-card[data-brand="Sample Packs"] .product-card-stock { color: var(--sample); }
+  .product-card[data-brand="Sample Packs"] .product-card-sizes { color: #6a5a6a; }
+
+  .page-break { page-break-before: always; }
+
+  .product-card.hardware-card[data-brand="Hardware"] .product-card-image {
+    height: 4.5cm;
   }
 </style>
 </head>
 <body>
 
-<!-- Cover -->
+{% set section_config = {
+  'Eybna': {'chapter': 'Strain Profiles', 'grid': '3col', 'brand': 'Eybna'},
+  'True Terpenes': {'chapter': 'Strain Profiles', 'grid': '3col', 'brand': 'True Terpenes'},
+  'Terp Belt Farms': {'chapter': 'Strain Profiles', 'grid': '3col', 'brand': 'Terp Belt Farms'},
+  'Terpenes UK - Botanical': {'chapter': 'Strain Profiles', 'grid': '3col', 'brand': 'Terpenes UK'},
+  'Prestige': {'chapter': 'Strain Profiles', 'grid': '3col', 'brand': 'Prestige'},
+  'Duty Free Terpenes': {'chapter': 'Strain Profiles', 'grid': '3col', 'brand': 'DFT'},
+  'Live Resin': {'chapter': 'Live Resin', 'grid': '3col'},
+  'Concentrated Flavours': {'chapter': 'Infusion', 'grid': '2col'},
+  'Oil Soluble Flavours': {'chapter': 'Infusion', 'grid': '2col', 'brand': 'Oil Soluble'},
+  'NEU Bag Infusion Packs': {'chapter': 'Infusion', 'grid': '3col', 'brand': 'NEU Bag'},
+  'Terpene Isolates': {'chapter': 'Isolates', 'grid': '3col'},
+  'Extract Liquidisers': {'chapter': 'Hardware & Ingredients', 'grid': '3col', 'brand': 'Liquidisers'},
+  'Diluents': {'chapter': 'Hardware & Ingredients', 'grid': '2col', 'brand': 'Diluents'},
+  'Vape Hardware': {'chapter': 'Hardware & Ingredients', 'grid': '3col', 'brand': 'Hardware'},
+  'Sample Packs': {'chapter': 'Sample Packs', 'grid': 'sample'},
+  'New Releases': {'chapter': 'New Releases', 'grid': '3col'},
+  'Clearance': {'chapter': 'Clearance', 'grid': '3col'},
+} %}
+
+{% set chapter_order = ['Strain Profiles', 'Live Resin', 'Infusion', 'Isolates', 'Hardware & Ingredients', 'Sample Packs', 'New Releases', 'Clearance'] %}
+{% set chapter_descriptions = {
+  'Strain Profiles': 'Premium cannabis and botanical terpene profiles from the world\'s leading producers.',
+  'Live Resin': 'Full-spectrum live resin profiles for the most demanding formulations.',
+  'Infusion': 'Flavour systems, concentrates, and infusion bases for product development.',
+  'Isolates': 'Single-molecule terpene isolates for precise formulation and custom blending.',
+  'Hardware & Ingredients': 'Vape hardware, liquidisers, and diluents for complete formulation.',
+  'Sample Packs': 'Curated sample sets across all brands for testing and discovery.',
+  'New Releases': 'Latest additions to the Terpenes UK catalogue.',
+  'Clearance': 'Discontinued and reduced stock \u2014 limited availability.',
+} %}
+
+{% set brand_taglines = {
+  'Eybna': 'Israeli terpene innovation · Palate & Live, Live Plus+, Enhancer lines',
+  'True Terpenes': 'US market leader · Cultivar and Live Resin profiles trusted by professionals',
+  'Terp Belt Farms': 'Single-source terpenes from California\'s legendary Terp Belt',
+  'Terpenes UK - Botanical': 'House brand profiles · Everyday formulations at wholesale pricing',
+  'Prestige': 'Terpenes UK exclusive line · Premium small-batch formulations',
+  'Duty Free Terpenes': 'Limited release strains · Buy 3 get 1 free while stocks last',
+  'Live Resin': 'True Terpenes Live Resin series · Full-spectrum fresh-frozen profiles',
+  'Concentrated Flavours': 'Concentrated flavour systems for infusion and product development',
+  'Oil Soluble Flavours': 'Oil-soluble formulations for vape carts, edibles, and topicals',
+  'NEU Bag Infusion Packs': 'Complete infusion packs for bag-based extraction systems',
+  'Terpene Isolates': 'Single-molecule terpenes for precise formulation and custom blending',
+  'Extract Liquidisers': 'Viscosity control solutions for vape formulations',
+  'Diluents': 'Carrier fluids for terpene dilution and precise formulation',
+  'Vape Hardware': 'CCELL cartridges, batteries, syringes, and mixing accessories',
+  'Sample Packs': 'Low-risk evaluation · Try before you commit to wholesale volumes',
+  'New Releases': 'Latest additions to the Terpenes UK catalogue',
+  'Clearance': 'Discontinued and reduced stock — limited availability',
+} %}
+
 <section class="cover">
-  <h1>{{ doc.cover.supplier_name }}</h1>
-  <p class="subtitle">{{ doc.cover.catalog_label }}</p>
-  <p class="metadata">
-    {{ doc.stats.product_count }} products &middot;
-    {{ doc.stats.brand_count }} brands &middot;
-    {{ doc.stats.section_count }} sections
-  </p>
+  <div class="logo-wrap">
+    <img src="https://terpenes-uk.co.uk/cdn/shop/files/logo_2000_x_2000_for_suzy.gif" alt="Terpenes UK">
+  </div>
+  <div class="rule"></div>
+  <p class="subtitle">Wholesale Catalogue</p>
+  <p class="edition">{{ doc.cover.catalog_label }}</p>
+  <p class="meta"><span>{{ doc.stats.product_count }} products</span> <span>{{ doc.stats.brand_count }} brands</span> <span>{{ doc.stats.section_count }} categories</span></p>
 </section>
 
-<!-- TOC -->
-<section class="toc">
-  <h2>Table of Contents</h2>
-  <ul>
-  {% for entry in doc.toc %}
-    <li>{{ entry.label }}</li>
+<section class="toc" id="toc">
+  <h2>Contents</h2>
+  <div class="toc-section"><span class="toc-num">01</span><span class="toc-title">Quick Guide</span><span class="toc-page">...</span></div>
+  {% set toc_idx = namespace(n=2) %}
+  {% for chapter in chapter_order %}
+    {% set chapter_sections = [] %}
+    {% for section in doc.sections %}
+      {% set cfg = section_config.get(section.label) %}
+      {% if cfg and cfg.chapter == chapter %}
+        {% set _ = chapter_sections.append(section) %}
+      {% endif %}
+    {% endfor %}
+    {% if chapter_sections %}
+    <div class="toc-section"><span class="toc-num">{{ "%02d"|format(toc_idx.n) }}</span><span class="toc-title">{{ chapter }}</span><span class="toc-page">...</span></div>
+    {% set toc_idx.n = toc_idx.n + 1 %}
+    <div class="toc-sub">
+      {% for section in chapter_sections %}
+      <span>{{ section.label }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
   {% endfor %}
-  </ul>
 </section>
 
-<!-- Sections -->
-{% for section in doc.sections %}
-<section>
-  <div class="section-header">
-    <h2>{{ section.label }}</h2>
-    {% if section.subtitle %}
-      <p class="section-subtitle">{{ section.subtitle }}</p>
+<section class="quick-guide" id="quick-guide">
+  <h2>Quick Guide</h2>
+  <div class="qg-grid">
+    <div class="qg-card"><div class="label">CDT</div><div class="def">Cannabis-derived terpenes. Sourced directly from cannabis plants. Most authentic aroma replication. Premium pricing.</div></div>
+    <div class="qg-card"><div class="label">BDT</div><div class="def">Botanical-derived terpenes. Extracted from non-cannabis plants. Globally compliant, cost-effective at scale.</div></div>
+    <div class="qg-card"><div class="label">HDT</div><div class="def">Hemp-derived terpenes. Extracted from industrial hemp. Middle ground between CDT authenticity and BDT compliance.</div></div>
+    <div class="qg-card"><div class="label">Live Resin</div><div class="def">Full-spectrum profiles preserving the fresh-frozen plant profile. Captures volatile compounds lost in curing. Premium vape.</div></div>
+    <div class="qg-card"><div class="label">Oil Soluble</div><div class="def">Formulated for oil-based products — vape carts, edibles, and topicals. Requires a carrier oil for proper suspension.</div></div>
+    <div class="qg-card"><div class="label">Isolates</div><div class="def">Single-molecule terpenes (99%+ purity). Used for precise formulation, custom blending, and reference standards.</div></div>
+    <div class="qg-card"><div class="label">Liquidisers</div><div class="def">Thinning agents that reduce extract viscosity for use in standard vape cartridges. Blended with active ingredients.</div></div>
+    <div class="qg-card"><div class="label">Diluents</div><div class="def">Carrier fluids for precise terpene dilution and custom blending. Provide consistent potency across production runs.</div></div>
+  </div>
+</section>
+
+{% macro product_card(p, card_class='', section_brand='') %}
+{% set is_hero = card_class == 'hero-card' %}
+{% set is_sample = card_class == 'sample-card' %}
+{% set is_isolate = card_class == 'isolate-card' %}
+{% set is_hardware = card_class == 'hardware-card' %}
+{% set pname = p.name|lower %}
+{% set pcol = (p.collection or '')|lower %}
+{% set pbrand = (p.brand or '')|lower %}
+{% set card_brand = section_brand if section_brand else (p.brand or '') %}
+<div class="product-card{% if card_class %} {{ card_class }}{% endif %}"{% if card_brand %} data-brand="{{ card_brand }}"{% endif %}>
+  {% if not is_isolate %}
+  <div class="product-card-image">{% if p.images %}<img src="{{ p.images[0].url }}" alt="{{ p.images[0].alt_text or p.name }}">{% endif %}</div>
+  {% endif %}
+  <div class="product-card-body">
+    {% if p.brand and not is_hero %}<div class="product-card-brand">{{ p.brand }}</div>{% endif %}
+    <div class="product-card-name">{{ p.name }}</div>
+    <div class="product-card-badge-row">
+      {% set badges = [] %}
+      {% if 'live resin' in pname or 'live' in pcol or 'live+' in pname %}{% set _ = badges.append(('badge-live', 'Live Resin')) %}{% endif %}
+      {% if 'cdt' in pname or 'cannabis' in pcol or 'cultivar' in pcol %}{% set _ = badges.append(('badge-cdt', 'CDT')) %}{% endif %}
+      {% if 'bdt' in pname or 'botanical' in pcol %}{% set _ = badges.append(('badge-bdt', 'BDT')) %}{% endif %}
+      {% if 'oil' in pcol or 'oil soluble' in pname %}{% set _ = badges.append(('badge-oil', 'Oil Soluble')) %}{% endif %}
+      {% if 'isolate' in pcol or 'isolate' in pname %}{% set _ = badges.append(('badge-premium', 'Isolate')) %}{% endif %}
+      {% if 'prestige' in pcol or 'prestige' in pname %}{% set _ = badges.append(('badge-premium', 'Prestige')) %}{% endif %}
+      {% if 'bundle' in pcol or 'sample' in pname %}{% set _ = badges.append(('badge-sample', 'Sample Pack')) %}{% endif %}
+      {% if 'liquidiser' in pcol or 'diluent' in pcol or 'hardware' in pcol %}{% set _ = badges.append(('badge-premium', p.collection)) %}{% endif %}
+      {% if not badges %}{% set _ = badges.append(('badge-premium', 'Premium')) %}{% endif %}
+      {% for cls, label in badges[:2] %}
+      <span class="product-card-badge {{ cls }}">{{ label }}</span>
+      {% endfor %}
+    </div>
+    {% if is_hero and p.available %}
+    <div class="product-card-stock">In Stock</div>
+    {% endif %}
+    {% if p.price %}<div class="product-card-price">From £{{ "%.2f"|format(p.price) }}</div>{% endif %}
+    {% if p.variants %}
+    <div class="product-card-sizes">
+      {% set prices = p.variants|map(attribute='price')|select('ne', None)|list %}
+      {% if prices %}
+        {% set min_p = prices|min %}{% set max_p = prices|max %}
+        <span>{% if min_p != max_p %}£{{ "%.2f"|format(min_p|float) }} – £{{ "%.2f"|format(max_p|float) }}{% else %}£{{ "%.2f"|format(min_p|float) }}{% endif %}</span>
+      {% endif %}
+      {% if p.variants|length > 1 %}<span>{{ p.variants|length }} sizes</span>{% endif %}
+    </div>{% endif %}
+    {% if not is_isolate %}
+    <div class="product-card-desc">{{ p.description|striptags|truncate(60) }}</div>
+    {% endif %}
+    {% if is_isolate and p.description %}
+    <div class="product-card-note">{{ p.description|striptags|truncate(40) }}</div>
     {% endif %}
   </div>
-  <div class="product-grid">
-  {% for pid in section.product_ids %}
-    {% set p = doc.products[pid] %}
-    <div class="product-card">
-      {% if p.images %}
-        <img src="{{ p.images[0].url }}" alt="{{ p.images[0].alt_text or p.name }}">
-      {% endif %}
-      <h3>{{ p.name }}</h3>
-      {% if p.brand %}<p class="brand">{{ p.brand }}</p>{% endif %}
-      {% if p.price %}
-        <p class="price">£{{ "%.2f"|format(p.price) }}</p>
-      {% endif %}
-      {% if p.compare_at_price %}
-        <p class="compare-price">£{{ "%.2f"|format(p.compare_at_price) }}</p>
-      {% endif %}
-      {% if p.size or p.unit %}
-        <p class="meta">{{ p.size or "" }} {{ p.unit or "" }}</p>
-      {% endif %}
-      <p class="description">{{ p.description|striptags|truncate(120) }}</p>
-    </div>
+</div>
+{% endmacro %}
+
+{% for chapter in chapter_order %}
+  {% set chapter_sections = [] %}
+  {% for section in doc.sections %}
+    {% set cfg = section_config.get(section.label) %}
+    {% if cfg and cfg.chapter == chapter %}
+      {% set _ = chapter_sections.append(section) %}
+    {% endif %}
   {% endfor %}
-  </div>
+
+  {% if chapter_sections %}
+
+<section class="chapter-opener" id="ch-{{ chapter|lower|replace(' ', '-')|replace('&', 'and') }}" data-chapter="{{ chapter }}">
+  <h1>{{ chapter }}</h1>
+  <p class="desc">{{ chapter_descriptions[chapter] }}</p>
 </section>
+
+    {% for section in chapter_sections %}
+      {% set cfg = section_config.get(section.label) %}
+      {% set grid_class = '' %}
+      {% set card_class = '' %}
+      {% if cfg.grid == '2col' %}
+        {% set grid_class = 'grid-2col' %}
+        {% if section.label in ('Extract Liquidisers', 'Diluents', 'Vape Hardware') %}
+          {% set card_class = 'hardware-card' %}
+        {% endif %}
+      {% elif cfg.grid == 'isolate' %}
+        {% set card_class = 'isolate-card' %}
+      {% elif cfg.grid == 'sample' %}
+        {% set card_class = 'sample-card' %}
+      {% endif %}
+
+      {% set is_first = loop.first %}
+      {% set tagline = brand_taglines.get(section.label, '') %}
+      {% set brand_key = cfg.get('brand', '') %}
+      {% if not brand_key and chapter not in ('Strain Profiles',) %}{% set brand_key = chapter %}{% endif %}
+<div class="section-header{% if brand_key and not is_first %} section-break{% endif %}{% if brand_key %} brand-section{% endif %}" data-label="{{ section.label }}"{% if brand_key %} data-brand="{{ brand_key }}"{% endif %}>
+  <h2>{{ section.label }}</h2>
+  <div class="rule"></div>
+  <p class="tagline">{{ tagline }}</p>
+  <p class="count">{{ section.product_ids|length }} products</p>
+</div>
+
+      {% if cfg.grid == 'sample' %}
+        {% for pid in section.product_ids %}
+          {% set p = doc.products[pid] %}
+          {{ product_card(p, 'sample-card', brand_key) }}
+        {% endfor %}
+      {% elif cfg.grid == 'isolate' %}
+<div class="product-grid">
+        {% for pid in section.product_ids %}
+          {% set p = doc.products[pid] %}
+          {{ product_card(p, 'isolate-card', brand_key) }}
+        {% endfor %}
+</div>
+      {% else %}
+<div class="product-grid{% if grid_class %} {{ grid_class }}{% endif %}">
+        {% for pid in section.product_ids %}
+          {% set p = doc.products[pid] %}
+          {{ product_card(p, card_class, brand_key) }}
+        {% endfor %}
+</div>
+      {% endif %}
+
+    {% endfor %}
+  {% endif %}
 {% endfor %}
 
 </body>

@@ -21,16 +21,22 @@ Raw Snapshot (exact supplier response, never modified)
   ↓
 Normalized Catalog (Product, Variant, Image tables)
   ↓
+Categorizer (rules-based classifier → canonical section)
+  ↓
 CatalogDocument (in-memory renderer-agnostic model)
+  ↓
+Integrity check (100% coverage, 0 duplicates = required)
   ↓
 Artifacts (PDF, HTML, search index, manifest, ...)
 ```
 
 ### Key Design Decisions
 
+- **Canonical sections, not Shopify collections**: Shopify collections are a merchandising tool, not a publication structure. Every product is classified into exactly one editorial section by the categorizer (`terpvault/generate/categorizer.py`). The manifest (`terpvault/generate/sections.py`) defines the canonical section order.
+- **Build fails on coverage errors**: No product may appear in zero sections or more than one section. The integrity check enforces this.
 - **Supplier-agnostic**: Adding a supplier requires a config file and an importer — no core engine changes.
 - **Raw data preserved**: Every product's `raw` column stores the exact supplier JSON, enabling re-normalization without re-fetching.
-- **Snapshot-first publishing**: Catalogs are generated from historical snapshots, not the current database. `terpvault generate --from snapshot-2026-01-14` works forever.
+- **Snapshot-first publishing**: Catalogs are generated from historical snapshots, not the current database.
 - **Atomic sync**: Each synchronization runs in a single database transaction. If anything fails, no partial data is written.
 - **Config-driven branding**: All visual supplier information (colors, fonts, logo) comes from YAML config, not code.
 
@@ -40,6 +46,9 @@ Artifacts (PDF, HTML, search index, manifest, ...)
 # Synchronize supplier data
 terpvault sync <supplier-slug>
 
+# Export catalog from latest snapshot
+terpvault export <supplier-slug>
+
 # Show help
 terpvault --help
 ```
@@ -48,7 +57,8 @@ terpvault --help
 
 1. Create `terpvault/config/suppliers/<slug>.yaml` with branding and connection details.
 2. Create `terpvault/sync/importer/<slug>.py` with a class implementing `fetch_products()` and the normalizer.
-3. Run `terpvault sync <slug>`.
+3. Optionally extend `terpvault/generate/categorizer.py` with supplier-specific classification rules.
+4. Run `terpvault sync <slug>`.
 
 ## Development
 
@@ -69,7 +79,8 @@ alembic upgrade head
 | Milestone | Status |
 |-----------|--------|
 | M1 — Sync Pipeline | ✅ Complete |
-| M2 — Diff & Changelog | ⏳ Next |
-| M3 — PDF Publishing | 📅 Planned |
-| M4 — HTML + Web Interface | 📅 Planned |
-| M5 — Second Supplier | 📅 Planned |
+| M2 — Diff & Changelog | ✅ Complete |
+| M3 — Catalog Foundation (categorizer, sections, integrity) | ✅ Complete |
+| M4 — PDF Publishing | ✅ Complete |
+| M5 — Editorial Design (typography, grids, visual hierarchy) | 📅 Next |
+| M6 — Second Supplier | 📅 Planned |

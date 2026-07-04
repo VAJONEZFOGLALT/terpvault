@@ -52,6 +52,7 @@ def check_catalog(doc: CatalogDocument) -> IntegrityResult:
     _check_statistical(doc, result)
     _check_serialization(doc, result)
     _check_publishing(doc, result)
+    _check_coverage(doc, result)
     return result
 
 
@@ -235,4 +236,44 @@ def _check_publishing(doc: CatalogDocument, result: IntegrityResult):
                 category="publishing",
                 message=f"Product '{p.name}' ({pid}) is available but has no price",
                 location=f"products['{pid}'].price",
+            ))
+
+
+def _check_coverage(doc: CatalogDocument, result: IntegrityResult):
+    all_section_ids: list[str] = []
+    for s in doc.sections:
+        all_section_ids.extend(s.product_ids)
+
+    seen = set()
+    duplicates = []
+    for pid in all_section_ids:
+        if pid in seen:
+            duplicates.append(pid)
+        seen.add(pid)
+
+    if duplicates:
+        result.issues.append(IntegrityIssue(
+            severity=Severity.error,
+            category="coverage",
+            message=f"{len(duplicates)} product(s) appear in multiple sections. Each product must belong to exactly one section.",
+            location=f"duplicate_ids={duplicates}",
+        ))
+
+    if len(seen) != len(doc.products):
+        missing = set(doc.products.keys()) - seen
+        if missing:
+            names = [doc.products[pid].name for pid in missing]
+            result.issues.append(IntegrityIssue(
+                severity=Severity.error,
+                category="coverage",
+                message=f"{len(missing)} product(s) are not assigned to any section: {names}",
+                location=f"missing_ids={list(missing)}",
+            ))
+        extra = seen - set(doc.products.keys())
+        if extra:
+            result.issues.append(IntegrityIssue(
+                severity=Severity.error,
+                category="coverage",
+                message=f"{len(extra)} section references point to non-existent products",
+                location=f"orphan_ids={list(extra)}",
             ))

@@ -6,6 +6,8 @@ from terpvault.domain.catalog_document import (
     SectionInfo, SectionType, TocEntry,
 )
 from terpvault.domain.models import ProductData
+from terpvault.generate.categorizer import classify
+from terpvault.generate.sections import CANONICAL_SECTIONS, SECTION_BY_KEY
 
 
 class CatalogBuilder:
@@ -14,47 +16,65 @@ class CatalogBuilder:
         self.supplier_name = supplier_name
 
     def build(self, products: list[ProductData], catalog_label: str = "") -> CatalogDocument:
-        sorted_products = sorted(products, key=lambda p: (p.collection or "", p.brand or "", p.name or ""))
-
         product_map: dict[str, CatalogProduct] = {}
-        section_map: dict[str, SectionInfo] = OrderedDict()
-        brands: set[str] = set()
+        section_buckets: dict[str, list[str]] = OrderedDict()
 
-        section_index = 0
-        for p in sorted_products:
+        for cs in CANONICAL_SECTIONS:
+            section_buckets[cs.key] = []
+
+        seen: set[str] = set()
+        for p in products:
+            if p.external_id in seen:
+                continue
+            seen.add(p.external_id)
             cp = self._to_catalog_product(p)
             product_map[p.external_id] = cp
+            section_key = classify(p)
+            if section_key in section_buckets:
+                section_buckets[section_key].append(p.external_id)
+            else:
+                section_buckets[section_key] = [p.external_id]
 
+        total_cards = sum(len(ids) for ids in section_buckets.values())
+        if total_cards != len(seen):
+            dupe_ids = [eid for ids in section_buckets.values() for eid in ids]
+            from collections import Counter
+            counts = Counter(dupe_ids)
+            repeated = {eid: c for eid, c in counts.items() if c > 1}
+            import warnings
+            warnings.warn(
+                f"PRODUCT DUPLICATION DETECTED: {len(seen)} unique products "
+                f"produced {total_cards} cards ({total_cards - len(seen)} extra). "
+                f"Offending IDs: {dict(list(repeated.items())[:20])}"
+            )
+
+        sections = []
+        toc = []
+        section_index = 0
+        brands: set[str] = set()
+
+        for cs in CANONICAL_SECTIONS:
+            pids = section_buckets.get(cs.key, [])
+            if not pids:
+                continue
+            sections.append(SectionInfo(
+                index=section_index,
+                type=SectionType.collection,
+                label=cs.label,
+                subtitle=cs.subtitle,
+                product_ids=pids,
+            ))
+            toc.append(TocEntry(label=cs.label, section_index=section_index))
+            section_index += 1
+
+        for p in product_map.values():
             if p.brand:
                 brands.add(p.brand)
-
-            section_key = p.collection or p.brand or "General"
-            if section_key not in section_map:
-                section_type = SectionType.collection
-                if p.collection:
-                    section_type = SectionType.collection
-                elif p.brand:
-                    section_type = SectionType.brand
-                section_map[section_key] = SectionInfo(
-                    index=section_index,
-                    type=section_type,
-                    label=section_key,
-                    subtitle=p.brand or "",
-                    product_ids=[],
-                )
-                section_index += 1
-            section_map[section_key].product_ids.append(p.external_id)
-
-        sections = list(section_map.values())
-        toc = [
-            TocEntry(label=s.label, section_index=s.index)
-            for s in sections
-        ]
 
         cover = CoverInfo(
             supplier_name=self.supplier_name or self.supplier_slug,
             catalog_label=catalog_label or "Catalog",
-            product_count=len(products),
+            product_count=len(product_map),
             brand_count=len(brands),
         )
 

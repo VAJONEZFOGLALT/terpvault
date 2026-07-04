@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Downloads — {{ catalog.supplier_name }} — TerpVault{% endblock %}
+
+{% block head %}
+<style>
+  .downloads-header { padding: 40px 0 24px; }
+  .downloads-header h1 { font-family: var(--font-heading); font-size: 24px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .downloads-header p { font-size: 14px; color: var(--text-secondary); }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 24px 28px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: all var(--transition);
+  }
+  .card:hover { border-color: var(--green); }
+  .card .left { display: flex; align-items: center; gap: 16px; }
+  .card .badge { width: 44px; height: 44px; border-radius: 12px; background: var(--green-bg); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--green); flex-shrink: 0; }
+  .card .badge.json { background: var(--isolates-bg); color: var(--isolates); }
+  .card .badge.print { background: var(--accent-gold); color: #fff; opacity: 0.8; }
+  .card .info .name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .card .info .meta { font-size: 13px; color: var(--text-tertiary); }
+  .card .info .tag { font-size: 11px; display: inline-block; padding: 2px 8px; border-radius: 100px; background: var(--green-bg); color: var(--green); font-weight: 500; margin-top: 4px; }
+  .card .info .tag.recommended { background: var(--green); color: #fff; }
+  .card .btn { flex-shrink: 0; }
+
+  .info-note {
+    margin-top: 40px; padding: 20px; background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--text-tertiary); line-height: 1.6;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container container-narrow">
+  <nav class="breadcrumbs" aria-label="Breadcrumbs">
+    <a href="/">TerpVault</a>
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}">{{ catalog.supplier_name }}</a>
+    <span class="sep">/</span>
+    <span class="current">Downloads</span>
+  </nav>
+
+  <div class="downloads-header">
+    <h1>Catalogue Downloads</h1>
+    <p>{{ catalog.stats.product_count }} products &middot; {{ catalog.stats.brand_count }} brands &middot; {{ catalog.stats.section_count }} sections</p>
+  </div>
+
+  {% set digi = pdf_info("catalogue.pdf") %}
+  {% set prnt = pdf_info("catalogue-print.pdf") %}
+  {% set pages = digi.pages if digi.pages > 0 else prnt.pages %}
+
+  <div class="card" style="border-color: var(--green); border-width: 2px;">
+    <div class="left">
+      <div class="badge" style="background: var(--green); color: #fff;">&#x1F4D1;</div>
+      <div class="info">
+        <div class="name">Catalogue PDF <span class="tag recommended">Recommended</span></div>
+        <div class="meta">{{ pages }} pages &middot; {% if digi.size_mb > 0 %}{{ digi.size_mb }} MB{% else %}Optimised for screens{% endif %} &middot; Same layout as print edition</div>
+      </div>
+    </div>
+      <a href="/prod/{{ slug }}/catalogue.pdf" class="btn btn-primary" target="_blank">Download</a>
+  </div>
+
+  <div class="card">
+    <div class="left">
+      <div class="badge print">&#x1F5A8;</div>
+      <div class="info">
+        <div class="name">Print Master</div>
+        <div class="meta">{{ pages }} pages &middot; {% if prnt.size_mb > 0 %}{{ prnt.size_mb }} MB{% else %}Full resolution{% endif %} &middot; For commercial printing</div>
+      </div>
+    </div>
+    <a href="/prod/{{ slug }}/catalogue-print.pdf" class="btn" target="_blank">Download</a>
+  </div>
+
+  <div class="card">
+    <div class="left">
+      <div class="badge json">{ }</div>
+      <div class="info">
+        <div class="name">JSON Data</div>
+        <div class="meta">Full catalogue structure for developers</div>
+      </div>
+    </div>
+    <a href="/prod/{{ slug }}/catalog.json" class="btn" target="_blank">Download JSON</a>
+  </div>
+
+  <div class="info-note">
+    The catalogue is automatically regenerated every 6 hours. If no changes are detected, the existing files are preserved.
+  </div>
+</div>
+{% endblock %}

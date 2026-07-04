@@ -1,79 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Changes — {{ slug }} — TerpVault</title>
+{% extends "base.html" %}
+{% block title %}Changes — {{ slug|replace('-',' ')|title }} — TerpVault{% endblock %}
+
+{% block head %}
 <style>
-  :root { --primary: #2C5F2D; --bg: #f4f5f3; --card: #fff; --border: #e0e0e0; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: #333; font-size: 14px; }
-  .container { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
-
-  nav { margin-bottom: 20px; }
-  nav a { color: var(--primary); text-decoration: none; font-size: 0.9em; }
-  nav a:hover { text-decoration: underline; }
-
-  header { padding: 10px 0 20px; border-bottom: 2px solid var(--primary); margin-bottom: 24px; }
-  header h1 { font-size: 1.4em; color: #222; }
+  .timeline-header { padding: 40px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .timeline-header h1 { font-size: 1.8rem; font-weight: 400; }
 
   .summary-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 24px;
-    display: flex; gap: 24px; flex-wrap: wrap;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 24px; margin-bottom: 24px; display: flex; gap: 24px; flex-wrap: wrap;
   }
   .summary-stat { min-width: 80px; }
   .summary-value { font-size: 1.5em; font-weight: 700; }
-  .summary-label { font-size: 0.8em; color: #888; margin-top: 2px; }
+  .summary-label { font-size: 0.8em; color: var(--text-tertiary); margin-top: 2px; }
   .major .summary-value { color: #c0392b; }
   .normal .summary-value { color: #e67e22; }
-  .minor .summary-value { color: #888; }
-  .added .summary-value { color: var(--primary); }
+  .minor .summary-value { color: var(--text-tertiary); }
+  .added .summary-value { color: var(--green); }
   .removed .summary-value { color: #c0392b; }
 
   .entry {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 12px 16px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px 16px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
   }
-  .entry:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .entry:hover { border-color: var(--green); }
 
   .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 0.75em;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    min-width: 70px;
-    text-align: center;
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 0.75em; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.3px; min-width: 70px; text-align: center;
   }
-  .badge-added { background: #e8f0e8; color: var(--primary); }
+  .badge-added { background: var(--green-bg); color: var(--green); }
   .badge-removed { background: #fce8e8; color: #c0392b; }
   .badge-updated { background: #fef5e7; color: #e67e22; }
   .badge-major { background: #fce8e8; color: #c0392b; }
   .badge-normal { background: #fef5e7; color: #e67e22; }
-  .badge-minor { background: #f0f0f0; color: #888; }
+  .badge-minor { background: var(--bg-overlay); color: var(--text-tertiary); }
 
-  .product-name { font-weight: 500; color: #333; flex: 1; }
-  .change-detail { font-size: 0.85em; color: #888; }
+  .product-name { font-weight: 500; flex: 1; }
+  .change-detail { font-size: 0.85em; color: var(--text-tertiary); }
 
-  .empty { text-align: center; color: #999; padding: 60px 0; }
+  .empty-state { text-align: center; padding: 60px 0; color: var(--text-tertiary); }
 </style>
-</head>
-<body>
-<div class="container">
-  <nav><a href="/supplier/{{ slug }}">&larr; {{ slug | replace('-', ' ') | title }}</a></nav>
-  <header><h1>Change History</h1></header>
+{% endblock %}
+
+{% block content %}
+<div class="container container-narrow">
+  <nav class="breadcrumbs" aria-label="Breadcrumbs">
+    <a href="/">TerpVault</a>
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}">{{ slug|replace('-',' ')|title }}</a>
+    <span class="sep">/</span>
+    <span class="current">Change History</span>
+  </nav>
+
+  <div class="timeline-header">
+    <h1>Change History</h1>
+  </div>
 
   {% set s = changes.summary %}
   <div class="summary-card">
@@ -109,14 +93,13 @@
       <span class="product-name">{{ e.product_name }}</span>
       {% if e.fields_changed %}
         {% for fc in e.fields_changed[:2] %}
-          <span class="change-detail">{{ fc.field }}: {{ fc.old_value }} → {{ fc.new_value }}</span>
+          <span class="change-detail">{{ fc.field }}: {{ fc.old_value }} &rarr; {{ fc.new_value }}</span>
         {% endfor %}
       {% endif %}
     </div>
     {% endfor %}
   {% else %}
-    <div class="empty">No changes recorded.</div>
+    <div class="empty-state"><p>No changes recorded.</p></div>
   {% endif %}
 </div>
-</body>
-</html>
+{% endblock %}

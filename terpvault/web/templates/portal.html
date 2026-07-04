@@ -3,100 +3,83 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TerpVault</title>
+<title>TerpVault — Catalogue Platform</title>
+<meta name="description" content="Premium terpene wholesale catalogue platform">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/terpvault.css">
+<script src="/assets/terpvault.js" defer></script>
 <style>
-  :root { --primary: #2C5F2D; --bg: #f4f5f3; --card: #fff; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: #333; }
-  .container { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
+  body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
 
-  header { padding: 40px 0 20px; }
-  header h1 { font-size: 1.8em; color: var(--primary); }
-  header p { color: #777; font-size: 0.9em; }
+  .brand { text-align: center; margin-bottom: 64px; }
+  .brand .icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--green-mid), var(--green)); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 28px; color: #fff; box-shadow: 0 8px 32px rgba(61,154,62,0.25); }
+  .brand h1 { font-family: var(--font-heading); font-size: 32px; font-weight: 600; letter-spacing: -0.5px; color: var(--text); margin-bottom: 8px; }
+  .brand p { font-size: 15px; color: var(--text-tertiary); font-weight: 400; }
 
-  .supplier-card {
-    background: var(--card);
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: box-shadow 0.15s;
-  }
-  .supplier-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .supplier-name { font-size: 1.1em; font-weight: 600; color: #333; }
-  .supplier-meta { color: #888; font-size: 0.85em; margin-top: 4px; }
-  .supplier-actions { display: flex; gap: 8px; }
+  .supplier-card { width: 100%; max-width: 480px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 32px; transition: all 0.3s ease; cursor: pointer; }
+  .supplier-card:hover { border-color: var(--green); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .supplier-card .top { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+  .supplier-card .logo-placeholder { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, var(--green-mid), var(--green)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .supplier-card .info { flex: 1; }
+  .supplier-card .info h2 { font-family: var(--font-heading); font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .supplier-card .info p { font-size: 14px; color: var(--text-tertiary); line-height: 1.5; }
+  .supplier-card .stats { display: flex; gap: 24px; margin-bottom: 24px; }
+  .supplier-card .stat { text-align: center; }
+  .supplier-card .stat .num { font-size: 22px; font-weight: 700; color: var(--green-mid); font-family: var(--font-heading); }
+  .supplier-card .stat .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-top: 2px; }
+  .supplier-card .open-btn { display: block; width: 100%; padding: 14px; background: var(--green); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; transition: background 0.2s; text-decoration: none; }
+  .supplier-card .open-btn:hover { background: var(--green-mid); }
 
-  .btn {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.85em;
-    font-weight: 500;
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
-  .btn:hover { background: var(--primary); color: #fff; }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: #1e4520; }
+  .footer-note { margin-top: 48px; font-size: 13px; color: var(--text-tertiary); text-align: center; }
 
-  footer { text-align: center; padding: 40px; color: #aaa; font-size: 0.8em; }
+  .theme-wrap { position: fixed; top: 24px; right: 32px; z-index: 10; }
+  .theme-wrap .theme-switcher { display: flex; border: 1px solid var(--border); border-radius: 100px; overflow: hidden; background: var(--bg-card); }
+  .theme-wrap .theme-btn { padding: 6px 8px; background: transparent; border: none; cursor: pointer; color: var(--text-tertiary); transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+  .theme-wrap .theme-btn:hover { color: var(--text); }
+  .theme-wrap .theme-btn.active { color: var(--green); background: var(--green-bg); }
 
-  .badge {
-    display: inline-block;
-    background: #e8f0e8;
-    color: var(--primary);
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 0.8em;
-    margin-right: 4px;
+  @media (max-width: 600px) {
+    .brand h1 { font-size: 24px; }
+    .supplier-card { padding: 24px; }
+    .supplier-card .stats { gap: 16px; }
   }
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>TerpVault</h1>
-    <p>Supplier catalog publishing platform</p>
-  </header>
 
-  {% if suppliers %}
-    {% for s in suppliers %}
-    <div class="supplier-card">
-      <div>
-        <div class="supplier-name">{{ s.name }}</div>
-        <div class="supplier-meta">
-          {% if s.latest_catalog %}
-            <span class="badge">{{ s.latest_catalog.product_count }} products</span>
-            <span class="badge">{{ s.latest_catalog.brand_count }} brands</span>
-            <span class="badge">{{ s.latest_catalog.section_count }} sections</span>
-            <span style="margin-left: 8px;">{{ s.catalog_count }} catalog version{% if s.catalog_count != 1 %}s{% endif %}</span>
-          {% else %}
-            No catalogs generated yet.
-          {% endif %}
-        </div>
-      </div>
-      <div class="supplier-actions">
-        {% if s.catalog_count > 0 %}
-          <a href="/supplier/{{ s.slug }}" class="btn btn-primary">Open</a>
-        {% endif %}
-      </div>
-    </div>
-    {% endfor %}
-  {% else %}
-    <p style="text-align:center;color:#999;padding:60px 0;">No suppliers configured. Run <code>terpvault sync &lt;supplier&gt;</code> to get started.</p>
-  {% endif %}
-
-  <footer>
-    TerpVault {{ version }} &middot; Powered by suppliers
-  </footer>
+<div class="theme-wrap">
+  <div class="theme-switcher" role="radiogroup" aria-label="Theme">
+    <button data-theme-btn data-theme-value="light" class="theme-btn" aria-label="Light theme" title="Light"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+    <button data-theme-btn data-theme-value="system" class="theme-btn active" aria-label="System theme" title="System"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+    <button data-theme-btn data-theme-value="dark" class="theme-btn" aria-label="Dark theme" title="Dark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
+  </div>
 </div>
+
+<div class="brand">
+  <div class="icon"><img src="/assets/logo.svg" alt="TerpVault" style="width:36px;height:36px;"></div>
+  <h1>TerpVault</h1>
+  <p>Digital Catalogue Platform</p>
+</div>
+
+<div class="supplier-card" onclick="window.location=this.querySelector('.open-btn').href">
+  <div class="top">
+    <div class="logo-placeholder"><img src="/assets/terpenes-uk-logo.gif" alt="Terpenes UK" style="width:48px;height:48px;object-fit:contain;border-radius:12px;"></div>
+    <div class="info">
+      <h2>Terpenes UK</h2>
+      <p>Premium botanical &amp; cannabis-derived terpenes</p>
+    </div>
+  </div>
+  {% set gen = suppliers[0].stats.generated_at %}
+  {% set date = gen[:10] if gen else "Unknown" %}
+  <div class="stats">
+    <div class="stat"><div class="num">{{ suppliers[0].stats.product_count }}</div><div class="lbl">Products</div></div>
+    <div class="stat"><div class="num">{{ suppliers[0].stats.brand_count }}</div><div class="lbl">Brands</div></div>
+    <div class="stat"><div class="num">{{ date }}</div><div class="lbl">Updated</div></div>
+  </div>
+  <a href="/catalogs/{{ suppliers[0].slug }}" class="open-btn">Open Catalogue &rarr;</a>
+</div>
+
+<div class="footer-note">TerpVault {{ app_version or "2.0.0" }} &middot; {{ suppliers|length }} supplier</div>
+
 </body>
 </html>

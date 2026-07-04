@@ -6,7 +6,9 @@ from terpvault.generate.artifacts.base import ArtifactGenerator, Artifact, Build
 
 class PlaywrightPDFGenerator(ArtifactGenerator):
     def generate(self, document: CatalogDocument, context: BuildContext) -> Artifact:
-        output_path = context.output_dir / context.supplier_config.slug / f"catalog-{context.catalog_version}.pdf"
+        suffix = f"-{context.edition}" if context.edition == "digital" else ""
+        filename = f"catalog{suffix}-{context.catalog_version}.pdf"
+        output_path = context.output_dir / context.supplier_config.slug / filename
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         html = self._render_html(document, context)
@@ -19,6 +21,67 @@ class PlaywrightPDFGenerator(ArtifactGenerator):
             checksum=self._checksum(pdf_bytes),
             size_bytes=len(pdf_bytes),
         )
+
+    @staticmethod
+    def generate_both(
+        document: CatalogDocument,
+        context: BuildContext,
+    ) -> tuple[Artifact, Artifact]:
+        html = PlaywrightPDFGenerator._render_html(document, context)
+        pdf_bytes = PlaywrightPDFGenerator._to_pdf(html)
+
+        base_dir = context.output_dir / context.supplier_config.slug
+        base_dir.mkdir(parents=True, exist_ok=True)
+
+        version = context.catalog_version
+        print_path = base_dir / f"catalog-{version}.pdf"
+        print_path.write_bytes(pdf_bytes)
+        print_artifact = Artifact(
+            path=print_path,
+            artifact_type="pdf",
+            checksum=PlaywrightPDFGenerator._checksum(pdf_bytes),
+            size_bytes=len(pdf_bytes),
+        )
+
+        digital_bytes = PlaywrightPDFGenerator._compress_digital(pdf_bytes)
+        digital_path = base_dir / f"catalog-digital-{version}.pdf"
+        digital_path.write_bytes(digital_bytes)
+        digital_artifact = Artifact(
+            path=digital_path,
+            artifact_type="pdf",
+            checksum=PlaywrightPDFGenerator._checksum(digital_bytes),
+            size_bytes=len(digital_bytes),
+        )
+
+        return print_artifact, digital_artifact
+
+    @staticmethod
+    def _compress_digital(pdf_bytes: bytes, max_dim: int = 600) -> bytes:
+        from io import BytesIO
+        from pypdf import PdfReader, PdfWriter
+        from PIL import Image
+        reader = PdfReader(BytesIO(pdf_bytes))
+        writer = PdfWriter()
+        for page in reader.pages:
+            writer.add_page(page)
+        for page in writer.pages:
+            for img in page.images:
+                pil_img = img.image
+                w, h = pil_img.size
+                if max(w, h) <= max_dim:
+                    continue
+                scale = max_dim / max(w, h)
+                new_w = int(w * scale)
+                new_h = int(h * scale)
+                resized = pil_img.resize((new_w, new_h), Image.LANCZOS)
+                if resized.mode == "RGBA":
+                    white = Image.new("RGB", resized.size, (255, 255, 255))
+                    white.paste(resized, mask=resized.split()[3])
+                    resized = white
+                img.replace(resized, quality=75)
+        buf = BytesIO()
+        writer.write(buf)
+        return buf.getvalue()
 
     @staticmethod
     def _checksum(data: bytes) -> str:
@@ -47,7 +110,8 @@ class PlaywrightPDFGenerator(ArtifactGenerator):
             pdf_bytes = page.pdf(
                 format="A4",
                 print_background=True,
-                margin={"top": "2cm", "bottom": "2cm", "left": "1.8cm", "right": "1.8cm"},
+                margin={"top": "1.5cm", "bottom": "1.8cm", "left": "1.4cm", "right": "1.4cm"},
+                scale=1.0,
             )
             browser.close()
             return pdf_bytes

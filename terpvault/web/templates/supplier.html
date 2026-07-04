@@ -1,157 +1,252 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ supplier.name }} — TerpVault</title>
+{% extends "base.html" %}
+{% block title %}{{ catalog.supplier_name }} — TerpVault{% endblock %}
+
+{% block head %}
 <style>
-  :root { --primary: #2C5F2D; --bg: #f4f5f3; --card: #fff; --border: #e0e0e0; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: #333; font-size: 14px; }
-  .container { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
-
-  nav { margin-bottom: 20px; }
-  nav a { color: var(--primary); text-decoration: none; font-size: 0.9em; }
-  nav a:hover { text-decoration: underline; }
-
-  header { padding: 10px 0 20px; border-bottom: 2px solid var(--primary); margin-bottom: 24px; }
-  header h1 { font-size: 1.6em; color: #222; }
+  .dash-banner {
+    background: linear-gradient(160deg, var(--bg-header) 0%, var(--bg) 100%);
+    padding: 48px 0 32px; position: relative; overflow: hidden;
+  }
+  .dash-banner::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--green), var(--green-light), var(--green-mid));
+  }
+  .dash-banner .logo-badge {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--green-mid), var(--green));
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .dash-banner .logo-badge img { width: 32px; height: 32px; }
+  .dash-banner h1 { font-family: var(--font-heading); font-size: 28px; font-weight: 600; margin-bottom: 6px; }
+  .dash-banner .desc { color: var(--text-secondary); font-size: 14px; margin-bottom: 8px; }
+  .dash-banner .back-link { color: var(--text-tertiary); font-size: 13px; display: inline-block; margin-bottom: 16px; }
+  .dash-banner .back-link:hover { color: var(--text); }
 
   .latest-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 24px;
-    margin-bottom: 24px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 40px 44px; display: flex; align-items: center; justify-content: space-between;
+    margin: 24px 0 32px; transition: border var(--transition);
   }
-  .latest-card h2 { font-size: 1em; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+  .latest-card:hover { border-color: var(--green); }
+  .latest-card .left { display: flex; align-items: center; gap: 24px; }
+  .latest-card .glow { width: 18px; height: 18px; border-radius: 50%; background: var(--green-mid); box-shadow: 0 0 20px rgba(61,154,62,0.5); flex-shrink: 0; }
+  .latest-card .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 4px; }
+  .latest-card .title { font-size: 24px; font-weight: 600; color: var(--text); font-family: var(--font-heading); }
+  .latest-card .sub { font-size: 14px; color: var(--text-tertiary); }
+  .latest-card .btn-group { display: flex; gap: 10px; flex-shrink: 0; }
+  .latest-card .btn { padding: 14px 28px; font-size: 15px; }
 
-  .stat-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-  .stat { min-width: 100px; }
-  .stat-value { font-size: 1.6em; font-weight: 700; color: var(--primary); }
-  .stat-label { font-size: 0.8em; color: #888; margin-top: 2px; }
+  .dash-section { margin-bottom: 40px; }
+  .dash-section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); margin-bottom: 16px; font-weight: 600; }
 
-  .meta-line { color: #666; font-size: 0.9em; margin: 4px 0; }
-  .meta-line strong { color: #444; }
-
-  .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-
-  .version-list { margin-top: 24px; }
-  .version-list h2 { font-size: 1em; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-
-  .version-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 14px 20px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .action-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 20px; text-align: center; transition: all var(--transition);
   }
-  .version-card:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-  .version-title { font-weight: 600; color: #333; }
-  .version-meta { color: #888; font-size: 0.85em; margin-top: 2px; }
-  .version-meta span { margin-right: 10px; }
+  .action-card:hover { border-color: var(--green); background: var(--bg-overlay); }
+  .action-card .icon { font-size: 22px; margin-bottom: 8px; }
+  .action-card .name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .action-card .desc { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+  @media (max-width: 600px) { .action-grid { grid-template-columns: repeat(2, 1fr); } }
 
-  .btn {
-    display: inline-block;
-    padding: 8px 18px;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.85em;
-    font-weight: 500;
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+  .highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .highlight {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 20px; transition: border var(--transition);
   }
-  .btn:hover { background: var(--primary); color: #fff; }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: #1e4520; }
-  .btn-sm { padding: 5px 12px; font-size: 0.8em; }
+  .highlight:hover { border-color: var(--green); }
+  .highlight .hlbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 600; }
+  .highlight .hval { font-size: 14px; font-weight: 600; color: var(--text); }
+  .highlight .hsub { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
 
-  footer { text-align: center; padding: 40px; color: #aaa; font-size: 0.8em; }
+  .pill-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 100px;
+    padding: 8px 18px; font-size: 13px; color: var(--text-secondary);
+    transition: all var(--transition); text-decoration: none;
+  }
+  .pill:hover { border-color: var(--green); color: var(--text); }
+
+  .featured-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .featured-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 16px; transition: all var(--transition);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .featured-card:hover { border-color: var(--green); }
+  .featured-card .fp { width: 48px; height: 48px; border-radius: 10px; background: var(--bg-overlay); flex-shrink: 0; border: 1px solid var(--border-light); }
+  .featured-card .fi { flex: 1; }
+  .featured-card .fi .fn { font-size: 14px; font-weight: 600; color: var(--text); }
+  .featured-card .fi .fb { font-size: 12px; color: var(--text-tertiary); }
+  .featured-card .fi .fprice { font-size: 14px; font-weight: 700; color: var(--green); }
+
+  @media (max-width: 768px) {
+    .highlights { grid-template-columns: 1fr; }
+    .featured-grid { grid-template-columns: 1fr; }
+    .latest-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .latest-card .btn-group { width: 100%; }
+    .latest-card .btn-group .btn { flex: 1; text-align: center; }
+  }
 </style>
-</head>
-<body>
-<div class="container">
-  <nav><a href="/">&larr; Suppliers</a></nav>
-  <header>
-    <h1>{{ supplier.name }}</h1>
-  </header>
+{% endblock %}
 
-  {% set latest = supplier.catalogs[0] if supplier.catalogs else None %}
+{% block content %}
+{% set cat = get_catalog() %}
+{% set latest_build = catalog.stats.generated_at[:16] if catalog.stats.generated_at else "Unknown" %}
+{% set products = catalog.products.values() | list %}
+{% set featured = products[:3] %}
 
-  {% if latest %}
-  <div class="latest-card">
-    <h2>Latest Catalog</h2>
-    <div class="stat-grid">
-      <div class="stat">
-        <div class="stat-value">{{ latest.product_count }}</div>
-        <div class="stat-label">Products</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">{{ latest.brand_count }}</div>
-        <div class="stat-label">Brands</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">{{ latest.section_count }}</div>
-        <div class="stat-label">Collections</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">{{ latest.variant_count }}</div>
-        <div class="stat-label">Variants</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">{{ latest.image_count }}</div>
-        <div class="stat-label">Images</div>
-      </div>
-    </div>
-
-    <div class="meta-line"><strong>Generated:</strong> {{ latest.timestamp[:19] }}</div>
-    <div class="meta-line"><strong>Snapshot:</strong> {{ latest.snapshot_id[:16] if latest.snapshot_id else "—" }}</div>
-
-    <div class="actions">
-      <a href="/catalogs/{{ supplier.slug }}/index.html" class="btn btn-primary" target="_blank">Browse HTML</a>
-      <a href="/catalogs/{{ supplier.slug }}/{{ latest.filename }}" class="btn" target="_blank">Download JSON</a>
-      <a href="/supplier/{{ supplier.slug }}/timeline" class="btn">View Changes</a>
-      <a href="/supplier/{{ supplier.slug }}/search" class="btn">Search</a>
+<div class="dash-banner">
+  <div class="container">
+    <a href="/" class="back-link">&larr; All Catalogues</a>
+    <div class="logo-badge"><img src="/assets/terpenes-uk-logo.gif" alt="Terpenes UK" style="width:40px;height:40px;object-fit:contain;border-radius:10px;"></div>
+    <h1>{{ catalog.supplier_name }}</h1>
+    <div class="desc">Premium botanical &amp; cannabis-derived terpenes</div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 12px;border-radius:100px;border:1px solid var(--green);color:var(--green);background:var(--green-bg);" title="Synced {{ latest_build.replace('T', ' ') }} UTC">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--green-mid);box-shadow:0 0 8px rgba(61,154,62,0.4);"></span>
+        Synced {{ catalog.stats.generated_at | relative_time }}
+      </span>
+      <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 12px;border-radius:100px;border:1px solid var(--border);color:var(--text-tertiary);">
+        Auto-refresh every 6h
+      </span>
     </div>
   </div>
-  {% else %}
-  <p style="color:#999;">No catalogs found for this supplier.</p>
-  {% endif %}
-
-  {% if supplier.catalogs and supplier.catalogs|length > 1 %}
-  <div class="version-list">
-    <h2>Previous Versions</h2>
-    {% for cat in supplier.catalogs[1:] %}
-    <div class="version-card">
-      <div>
-        <div class="version-title">{{ cat.timestamp[:10] }}</div>
-        <div class="version-meta">
-          <span>{{ cat.product_count }} products</span>
-          <span>{{ cat.brand_count }} brands</span>
-          <span>{{ cat.section_count }} sections</span>
-        </div>
-      </div>
-      <div>
-        <a href="/catalogs/{{ supplier.slug }}/{{ cat.filename }}" class="btn btn-sm">JSON</a>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% if not supplier.catalogs %}
-  <p style="text-align:center;color:#999;padding:40px 0;">
-    No catalogs generated yet. Run <code>terpvault sync {{ supplier.slug }}</code> to get started.
-  </p>
-  {% endif %}
-
-  <footer>TerpVault &middot; {{ supplier.name }}</footer>
 </div>
-</body>
-</html>
+
+<div class="container">
+
+  <div class="latest-card">
+    <div class="left">
+      <div class="glow"></div>
+      <div>
+        <div class="lbl">Latest Build</div>
+        <div class="title">Catalogue &middot; {{ catalog.stats.product_count }} products</div>
+        <div class="sub">{{ latest_build.replace('T', ' ') }} &middot; {{ catalog.stats.section_count }} sections</div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <a href="/prod/{{ slug }}/catalog.json" class="btn btn-sm" target="_blank">JSON</a>
+      <a href="/catalogs/{{ slug }}/catalogue" class="btn btn-sm btn-primary">Browse &rarr;</a>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <h2>Quick Actions</h2>
+    <div class="action-grid">
+      <a href="/catalogs/{{ slug }}/catalogue" class="action-card">
+        <div class="icon">&#x1F4D6;</div><div class="name">Catalogue</div><div class="desc">Browse products</div>
+      </a>
+      <a href="/catalogs/{{ slug }}/brands" class="action-card">
+        <div class="icon">&#x1F3F4;</div><div class="name">Brands</div><div class="desc">{{ catalog.stats.brand_count }} brands</div>
+      </a>
+      <a href="/catalogs/{{ slug }}/search" class="action-card">
+        <div class="icon">&#x1F50D;</div><div class="name">Search</div><div class="desc">Find products</div>
+      </a>
+      <a href="/catalogs/{{ slug }}/downloads" class="action-card">
+        <div class="icon">&#x1F4E5;</div><div class="name">Downloads</div><div class="desc">PDF &amp; JSON</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <h2>Highlights</h2>
+    <div class="highlights">
+      {% set digi = pdf_info("catalogue.pdf") %}
+      {% set prnt = pdf_info("catalogue-print.pdf") %}
+      <a href="/catalogs/{{ slug }}/downloads" class="highlight">
+        <div class="hlbl">Latest PDF</div>
+        <div class="hval">{{ digi.pages or prnt.pages or '?' }} pages &middot; {% if digi.size_mb > 0 %}{{ digi.size_mb }} MB{% elif prnt.size_mb > 0 %}{{ prnt.size_mb }} MB{% else %}—{% endif %}</div>
+        <div class="hsub">Download &rarr;</div>
+      </a>
+      <div class="highlight">
+        <div class="hlbl">Last Sync</div>
+        <div class="hval">{{ latest_build.replace('T', ' ') }}</div>
+        <div class="hsub">Auto-refresh every 6h</div>
+      </div>
+      <div class="highlight" id="changes-highlight">
+        <div class="hlbl">Recent Changes</div>
+        <div class="hval" id="changes-count">Loading...</div>
+        <div class="hsub" id="changes-detail">Comparing snapshots</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-section" id="changes-panel" style="display:none;">
+    <h2>What Changed</h2>
+    <div id="changes-body"></div>
+  </div>
+
+  <div class="dash-section">
+    <h2>Featured Products</h2>
+    <div class="featured-grid">
+      {% for p in featured %}
+      {% set pid = p.external_id %}
+      <a href="/catalogs/{{ slug }}/products/{{ pid }}" class="featured-card">
+        <div class="fp">
+          {% if p.images %}<img src="{{ p.images[0].url }}" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:10px;">{% endif %}
+        </div>
+        <div class="fi">
+          <div class="fn">{{ p.name }}</div>
+          {% if p.brand %}<div class="fb">{{ p.brand }}</div>{% endif %}
+          {% if p.price %}<div class="fprice">&pound;{{ "%.2f"|format(p.price) }}</div>{% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <h2>Browse Sections</h2>
+    <div class="pill-grid">
+      <a href="/catalogs/{{ slug }}/catalogue" class="pill">All Sections</a>
+      {% for ch in catalog_chapters() %}
+      <a href="/catalogs/{{ slug }}/catalogue?chapter={{ ch|slugify }}" class="pill">{{ ch }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+fetch('/catalogs/{{ slug }}/recent-changes')
+  .then(r => r.json())
+  .then(data => {
+    const countEl = document.getElementById('changes-count');
+    const detailEl = document.getElementById('changes-detail');
+    const panelEl = document.getElementById('changes-panel');
+    const bodyEl = document.getElementById('changes-body');
+
+    if (!data.has_changes) {
+      countEl.textContent = 'No changes';
+      detailEl.textContent = 'Since last build';
+      return;
+    }
+
+    countEl.textContent = data.added + data.updated + ' changes';
+    detailEl.textContent = data.added + ' added, ' + data.updated + ' updated, ' + data.removed + ' removed';
+
+    panelEl.style.display = 'block';
+    let html = '<div style="display:flex;flex-direction:column;gap:6px;">';
+    if (data.added > 0) {
+      html += '<div style="font-size:13px;color:var(--green);font-weight:600;">+ Added</div>';
+      data.added_names.forEach(function(n) { html += '<div style="font-size:13px;color:var(--text-secondary);padding-left:16px;">' + n + '</div>'; });
+      if (data.added > data.added_names.length) html += '<div style="font-size:12px;color:var(--text-tertiary);padding-left:16px;">+' + (data.added - data.added_names.length) + ' more</div>';
+    }
+    if (data.updated > 0) {
+      html += '<div style="font-size:13px;color:var(--accent-gold);font-weight:600;margin-top:8px;">~ Updated</div>';
+      data.updated_details.forEach(function(u) { html += '<div style="font-size:13px;color:var(--text-secondary);padding-left:16px;">' + u.name + ' &mdash; ' + u.field + ': ' + u.old + ' &rarr; ' + u.new + '</div>'; });
+    }
+    if (data.removed > 0) {
+      html += '<div style="font-size:13px;color:#c0392b;font-weight:600;margin-top:8px;">- Removed (' + data.removed + ')</div>';
+    }
+    html += '</div>';
+    bodyEl.innerHTML = html;
+  })
+  .catch(function() {
+    document.getElementById('changes-count').textContent = 'Unavailable';
+  });
+</script>
+{% endblock %}

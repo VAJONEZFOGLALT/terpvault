@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ brand.name }} — {{ catalog.supplier_name }} — TerpVault{% endblock %}
+
+{% block head %}
+<style>
+  .brand-hero {
+    padding: 48px 0 32px; margin-bottom: 32px;
+    border-bottom: 4px solid var(--green);
+    position: relative;
+  }
+  .brand-hero h1 { font-size: 2.5rem; font-weight: 400; margin-bottom: 8px; }
+  .brand-hero p { color: var(--text-secondary); max-width: 600px; line-height: 1.6; }
+  .brand-hero .brand-stat { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; margin-right: 20px; color: var(--text-secondary); font-size: 14px; }
+  .brand-hero .brand-stat strong { color: var(--text); }
+
+  .section-block { margin-bottom: 48px; }
+  .section-header { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; }
+  .section-header h2 { font-size: 1.2rem; font-weight: 500; }
+  .section-header .count { font-size: 13px; color: var(--green); font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumbs">
+    <a href="/">TerpVault</a>
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}">{{ catalog.supplier_name }}</a>
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}/brands">Brands</a>
+    <span class="sep">/</span>
+    <span class="current">{{ brand.name }}</span>
+  </nav>
+
+  {% set color = brand_colors.get(brand.name|lower, brand_colors.get(brand.name, 'var(--green)')) %}
+  <div class="brand-hero" style="border-bottom-color: {{ color }};">
+    <h1>{{ brand.name }}</h1>
+    <p>A brand within the {{ catalog.supplier_name }} catalogue.</p>
+    <div class="brand-stat"><strong>{{ brand.count }}</strong> products</div>
+    {% if brand.sections %}<div class="brand-stat"><strong>{{ brand.sections|length }}</strong> collections</div>{% endif %}
+  </div>
+
+  {% for item in sections %}
+  <div class="section-block">
+    <div class="section-header">
+      <h2>{{ item.section.label }}</h2>
+      <span class="count">{{ item.products|length }} products</span>
+    </div>
+    <div class="product-grid">
+      {% for p in item.products %}
+      <div class="product-card">
+        <a href="/catalogs/{{ slug }}/products/{{ p.external_id }}" tabindex="-1">
+          <div class="product-card-image">
+            {% if p.images %}
+            <img src="{{ p.images[0].url }}" alt="{{ p.name }}" loading="lazy">
+            {% endif %}
+          </div>
+        </a>
+        <div class="product-card-body">
+          {% if p.brand %}<div class="product-card-brand">{{ p.brand }}</div>{% endif %}
+          <div class="product-card-name"><a href="/catalogs/{{ slug }}/products/{{ p.external_id }}">{{ p.name }}</a></div>
+          {% if p.price %}<div class="product-card-price">£{{ "%.2f"|format(p.price) }}</div>{% endif %}
+          {% if p.size or p.unit %}<div class="product-card-meta">{{ p.size or "" }} {{ p.unit or "" }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -19,6 +19,7 @@ class BuildContext:
     output_dir: Path = Path("data/catalogs")
     build_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     git_commit: Optional[str] = None
+    edition: str = "print"  # "digital" or "print"
 
 
 @dataclass(frozen=True)

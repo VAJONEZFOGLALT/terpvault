@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — {{ catalog.supplier_name }} — TerpVault{% endblock %}
+
+{% block head %}
+<style>
+  .product-layout { display: grid; grid-template-columns: 50fr 50fr; gap: 64px; padding: 40px 0 80px; }
+  @media (max-width: 900px) { .product-layout { grid-template-columns: 1fr; gap: 32px; } }
+
+  .product-gallery { position: sticky; top: calc(var(--header-height) + 24px); align-self: start; }
+  @media (max-width: 800px) { .product-gallery { position: static; } }
+  .product-main-image {
+    width: 100%; aspect-ratio: 1; max-height: 650px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .product-main-image img { width: 100%; height: 100%; object-fit: contain; padding: 48px; }
+
+  .product-thumbs { display: flex; gap: 8px; margin-top: 12px; }
+  .product-thumb {
+    width: 64px; height: 64px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    overflow: hidden; cursor: pointer; background: var(--bg-card);
+  }
+  .product-thumb:hover, .product-thumb.active { border-color: var(--green); }
+  .product-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+
+  .product-info { padding-top: 8px; }
+  .product-brand { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--green); font-weight: 600; margin-bottom: 12px; }
+  .product-name { font-family: var(--font-heading); font-size: 2.2rem; font-weight: 500; margin-bottom: 16px; line-height: 1.15; letter-spacing: -0.3px; }
+  .product-price { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 700; color: var(--green); margin-bottom: 24px; }
+  .product-description { font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 32px; }
+  .product-description p { margin-bottom: 12px; }
+
+  .product-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .product-meta-item { padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .product-meta-item .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); font-weight: 600; }
+  .product-meta-item .value { font-size: 14px; margin-top: 4px; font-weight: 500; }
+
+  .variant-section { margin-bottom: 0; }
+  .variant-section h3 { font-size: 13px; color: var(--text-tertiary); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .variant-table { width: 100%; border-collapse: collapse; }
+  .variant-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .variant-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-light); font-size: 14px; }
+  .variant-table tr:last-child td { border-bottom: none; }
+  .variant-table tr:hover { background: var(--bg-overlay); }
+
+  .related-section { padding: 48px 0 60px; border-top: 1px solid var(--border); }
+  .related-section h2 { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; letter-spacing: -0.2px; }
+
+  @media (max-width: 600px) {
+    .product-layout { gap: 24px; padding: 24px 0 40px; }
+    .product-name { font-size: 1.5rem; }
+    .product-price { font-size: 1.4rem; }
+    .product-meta { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumbs" aria-label="Breadcrumbs">
+    <a href="/">TerpVault</a>
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}">{{ catalog.supplier_name }}</a>
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}/catalogue">Catalogue</a>
+    {% if section_name %}
+    <span class="sep">/</span>
+    <a href="/catalogs/{{ slug }}/catalogue?section={{ section_name|lower|replace(' ', '-') }}">{{ section_name }}</a>
+    {% endif %}
+    <span class="sep">/</span>
+    <span class="current">{{ product.name }}</span>
+  </nav>
+
+  <div class="product-layout">
+    <div class="product-gallery">
+      <div class="product-main-image">
+        {% if product.images %}
+        <img src="{{ product.images[0].url }}" alt="{{ product.name }}" id="main-image">
+        {% endif %}
+      </div>
+      {% if product.images|length > 1 %}
+      <div class="product-thumbs" role="list" aria-label="Product images">
+        {% for img in product.images %}
+        <button class="product-thumb" role="listitem" onclick="document.getElementById('main-image').src=this.querySelector('img').src" aria-label="View image {{ loop.index }}">
+          <img src="{{ img.url }}" alt="{{ img.alt_text or product.name }} view {{ loop.index }}" loading="lazy">
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="product-info">
+      {% if product.brand %}<div class="product-brand">{{ product.brand }}</div>{% endif %}
+      <h1 class="product-name">{{ product.name }}</h1>
+      {% if product.price %}<div class="product-price">£{{ "%.2f"|format(product.price) }}</div>{% endif %}
+
+      {% if product.description %}
+      <div class="product-description">{{ product.description|safe }}</div>
+      {% endif %}
+
+      <div class="product-meta">
+        {% if product.brand %}<div class="product-meta-item"><div class="label">Brand</div><div class="value">{{ product.brand }}</div></div>{% endif %}
+        {% if product.category %}<div class="product-meta-item"><div class="label">Category</div><div class="value">{{ product.category }}</div></div>{% endif %}
+        {% if product.collection %}<div class="product-meta-item"><div class="label">Collection</div><div class="value">{{ product.collection }}</div></div>{% endif %}
+        {% if product.external_id %}<div class="product-meta-item"><div class="label">SKU</div><div class="value">{{ product.external_id }}</div></div>{% endif %}
+      </div>
+
+      {% if product.variants and product.variants|length > 1 %}
+      <div class="variant-section"><h3>Available Sizes</h3>
+      <table class="variant-table">
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in product.variants %}
+          <tr>
+            <td>
+              {% if v.options %}
+                {% for k, val in v.options.items() %}{{ val }}{% if not loop.last %}, {% endif %}{% endfor %}
+              {% else %}
+                {{ v.sku }}
+              {% endif %}
+            </td>
+            <td>{% if v.price %}£{{ "%.2f"|format(v.price|float) }}{% endif %}</td>
+            <td>{% if v.available %}<span style="color:var(--green);">In Stock</span>{% else %}<span style="color:#c0392b;">Out of Stock</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if related %}
+<section class="related-section">
+  <div class="container">
+    <h2>Related Products</h2>
+    <div class="product-grid">
+      {% for r in related %}
+      <div class="product-card">
+        <a href="/catalogs/{{ slug }}/products/{{ r.id }}" tabindex="-1">
+          <div class="product-card-image">
+            {% if r.images %}
+            <img src="{{ r.images[0].url }}" alt="{{ r.name }}" loading="lazy">
+            {% endif %}
+          </div>
+        </a>
+        <div class="product-card-body">
+          {% if r.brand %}<div class="product-card-brand">{{ r.brand }}</div>{% endif %}
+          <div class="product-card-name"><a href="/catalogs/{{ slug }}/products/{{ r.id }}">{{ r.name }}</a></div>
+          {% if r.price %}<div class="product-card-price">£{{ "%.2f"|format(r.price) }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

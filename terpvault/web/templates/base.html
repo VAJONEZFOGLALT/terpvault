@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}TerpVault{% endblock %}</title>
+<meta name="description" content="{% block description %}Premium terpene wholesale catalogue{% endblock %}">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/terpvault.css">
+<script src="/assets/terpvault.js" defer></script>
+<style>
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg-nav);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-light);
+    height: var(--header-height);
+  }
+  .header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 100%; gap: 24px; max-width: var(--max-width); margin: 0 auto; padding: 0 24px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 600; font-size: 18px; flex-shrink: 0; }
+  .logo:hover { color: var(--green); }
+  .logo svg { color: var(--green); }
+  .logo-text { font-family: var(--font-heading); }
+
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-link {
+    padding: 8px 14px; border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 500; color: var(--text-secondary);
+    transition: all var(--transition);
+  }
+  .nav-link:hover { background: var(--bg-overlay); color: var(--text); }
+  .header-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+
+  .search-input {
+    width: 240px; padding: 8px 14px; border: 1px solid var(--border);
+    border-radius: 100px; font-size: 14px; font-family: var(--font-body);
+    background: var(--bg-input); color: var(--text);
+    transition: all var(--transition);
+  }
+  .search-input:focus { outline: none; border-color: var(--green); width: 300px; box-shadow: 0 0 0 3px var(--green-bg); }
+  .search-input::placeholder { color: var(--text-tertiary); }
+  @media (max-width: 768px) {
+    .search-input { width: 160px; }
+    .search-input:focus { width: 200px; }
+    .search-wrap { display: none; }
+  }
+
+  .search-results {
+    position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+    max-height: 400px; overflow-y: auto; display: none; z-index: 200;
+  }
+  .search-results.open { display: block; }
+  .search-result-item { display: block; padding: 10px 12px; border-radius: var(--radius-sm); color: var(--text); transition: background var(--transition); }
+  .search-result-item:hover, .search-result-item:focus { background: var(--bg-overlay); outline: none; }
+  .sri-name { font-size: 14px; font-weight: 500; }
+  .sri-name mark { background: var(--green-bg); color: var(--green); padding: 0 2px; border-radius: 2px; }
+  .sri-meta { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; display: flex; gap: 8px; }
+  .sri-price { color: var(--green); }
+  .search-empty { padding: 20px; text-align: center; color: var(--text-tertiary); font-size: 14px; }
+
+  .theme-switcher {
+    display: flex; border: 1px solid var(--border); border-radius: 100px; overflow: hidden;
+  }
+  .theme-btn {
+    padding: 6px; background: transparent; border: none; cursor: pointer;
+    color: var(--text-tertiary); transition: all var(--transition);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .theme-btn:hover { color: var(--text); background: var(--bg-overlay); }
+  .theme-btn.active { color: var(--green); background: var(--green-bg); }
+
+  .mobile-toggle {
+    display: none; flex-direction: column; gap: 4px;
+    background: none; border: none; cursor: pointer; padding: 8px;
+  }
+  .mobile-toggle span { display: block; width: 20px; height: 2px; background: var(--text); border-radius: 2px; transition: all var(--transition); }
+  @media (max-width: 768px) {
+    .mobile-toggle { display: flex; }
+    .nav-links { display: none; position: fixed; top: var(--header-height); left: 0; right: 0; bottom: 0;
+      background: var(--bg); flex-direction: column; padding: 24px; gap: 8px; z-index: 99; overflow-y: auto; }
+    .nav-links.open { display: flex; }
+    .theme-switcher { display: none; }
+  }
+
+  .mega-panels { position: absolute; top: var(--header-height); left: 0; right: 0; z-index: 99; }
+  .mega-panel {
+    display: none; background: var(--bg-card); border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-md); padding: 24px 0;
+  }
+  .mega-panel.open { display: block; }
+  .mega-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+  .mega-heading { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); margin-bottom: 12px; font-family: var(--font-body); font-weight: 600; }
+  .mega-links { list-style: none; }
+  .mega-links li { margin-bottom: 4px; }
+  .mega-links a { display: block; padding: 6px 0; font-size: 14px; color: var(--text-secondary); }
+  .mega-links a:hover { color: var(--green); }
+  .mega-stats { list-style: none; }
+  .mega-stats li { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; color: var(--text-secondary); }
+  .mega-stats .stat-value { font-weight: 700; color: var(--green); min-width: 32px; }
+
+  .back-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-secondary); padding: 4px 0; }
+  .back-link:hover { color: var(--green); }
+
+  .footer { border-top: 1px solid var(--border); margin-top: 60px; background: var(--bg-card); }
+  .footer-inner { max-width: var(--max-width); margin: 0 auto; display: grid; grid-template-columns: 1fr 2fr; gap: 48px; padding: 48px 24px; }
+  .footer-logo { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--text); }
+  .footer-desc { font-size: 14px; color: var(--text-tertiary); margin-top: 8px; }
+  .footer-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .footer-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-tertiary); margin-bottom: 12px; font-weight: 600; font-family: var(--font-body); }
+  .footer-col a, .footer-text { display: block; font-size: 14px; color: var(--text-secondary); margin-bottom: 6px; }
+  .footer-col a:hover { color: var(--green); }
+  .footer-bottom { border-top: 1px solid var(--border-light); padding: 16px 0; text-align: center; font-size: 13px; color: var(--text-tertiary); }
+  @media (max-width: 768px) {
+    .footer-inner { grid-template-columns: 1fr; gap: 24px; }
+    .footer-links { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) { .footer-links { grid-template-columns: 1fr; } }
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<header class="header" role="banner">
+  <div class="header-inner">
+    <a href="/" class="logo" aria-label="TerpVault home">
+      <img src="/assets/logo.svg" alt="TerpVault" style="width:32px;height:32px;">
+      <span class="logo-text">TerpVault</span>
+    </a>
+
+    <nav class="nav-links" role="navigation" aria-label="Main navigation">
+      {% set cat = get_catalog() %}
+      {% if cat %}
+      <div class="nav-item" data-mega-trigger="catalog">
+        <a href="/catalogs/{{ slug }}/catalogue" class="nav-link">Catalogue</a>
+      </div>
+      <div class="nav-item">
+        <a href="/catalogs/{{ slug }}/search" class="nav-link">Search</a>
+      </div>
+      <div class="nav-item">
+        <a href="/catalogs/{{ slug }}/downloads" class="nav-link">Downloads</a>
+      </div>
+      {% endif %}
+    </nav>
+
+    <div class="header-right">
+      {% if cat %}
+      <div class="search-wrap" role="search">
+        <label for="search-input" class="sr-only">Search products</label>
+        <input id="search-input" type="search" placeholder="Search {{ cat.stats.product_count }} products..." class="search-input" autocomplete="off" data-search-url="/catalogs/{{ slug }}/search-data">
+        <div id="search-results" class="search-results" role="listbox"></div>
+      </div>
+      {% endif %}
+      <div class="theme-switcher" role="radiogroup" aria-label="Theme">
+        <button data-theme-btn data-theme-value="light" class="theme-btn" aria-label="Light theme" title="Light"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+        <button data-theme-btn data-theme-value="system" class="theme-btn active" aria-label="System theme" title="System"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+        <button data-theme-btn data-theme-value="dark" class="theme-btn" aria-label="Dark theme" title="Dark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
+      </div>
+      <button id="mobile-menu-toggle" class="mobile-toggle" aria-expanded="false" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+
+  {% if cat %}
+  <div class="mega-panels">
+    <div class="mega-panel" data-mega-panel="catalog">
+      <div class="mega-inner">
+        <div class="mega-section">
+          <h3 class="mega-heading">Chapters</h3>
+          <ul class="mega-links">
+            <li><a href="/catalogs/{{ slug }}/catalogue">Browse All</a></li>
+            {% for ch in catalog_chapters() %}
+            <li><a href="/catalogs/{{ slug }}/catalogue?chapter={{ ch|slugify }}">{{ ch }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="mega-section">
+          <h3 class="mega-heading">Quick Stats</h3>
+          <ul class="mega-stats">
+            <li><span class="stat-value">{{ cat.stats.product_count }}</span> Products</li>
+            <li><span class="stat-value">{{ cat.stats.brand_count }}</span> Brands</li>
+            <li><span class="stat-value">{{ cat.stats.section_count }}</span> Sections</li>
+            <li><span class="stat-value">{{ cat.stats.variant_count }}</span> Variants</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="mega-panel" data-mega-panel="brands">
+      <div class="mega-inner">
+        <div class="mega-section">
+          <h3 class="mega-heading">Brands</h3>
+          <ul class="mega-links">
+            {% for brand in catalog_brands() %}
+            <li><a href="/catalogs/{{ slug }}/brands/{{ brand.slug }}">{{ brand.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</header>
+
+<main role="main" id="main-content">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="footer" role="contentinfo">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <a href="/" class="footer-logo">TerpVault</a>
+      <p class="footer-desc">Premium terpene catalogue platform</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Catalogue</h4>
+        <a href="/catalogs/{{ slug }}/catalogue">Browse</a>
+        <a href="/catalogs/{{ slug }}/brands">Brands</a>
+        <a href="/catalogs/{{ slug }}/search">Search</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="/catalogs/{{ slug }}/timeline">Changelog</a>
+        <a href="/catalogs/{{ slug }}/downloads">Downloads</a>
+        <a href="/">All Catalogues</a>
+      </div>
+      <div class="footer-col">
+        <h4>About</h4>
+        <span class="footer-text">TerpVault {{ app_version or "2.0.0" }}</span>
+        <span class="footer-text">Powered by TerpVault Engine</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container">
+      <p>&copy; 2026 TerpVault. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
